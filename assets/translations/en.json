@@ -1,0 +1,59 @@
+{
+  "login": "Login",
+  "register": "Register",
+  "home": "Home",
+  "welcome": "Welcome",
+
+  "cart": "Cart",
+  "account": "Account",
+  "my_account": "My Account",
+  "my_activity": "My Activity",
+
+  "saved_addresses": "Saved Addresses",
+  "manage_delivery_addresses": "Manage your delivery addresses",
+
+  "notification": "Notification",
+  "view_latest_offers": "View latest offers and updates",
+
+  "change_language": "Change Language",
+  "change_app_language": "Change app language",
+
+  "more": "More",
+
+  "terms_conditions": "Terms & Conditions",
+  "read_policies": "Read our policies",
+
+  "support": "Support",
+  "need_help_support": "Need help? Contact support",
+
+  "about_us": "About us",
+  "know_more_about_us": "Know more about us",
+
+  "settings": "Settings",
+  "app_preferences": "App preferences",
+
+  "logout": "Logout",
+  "logout_account": "Logout from your account",
+
+  "orders": "Orders",
+  "track_orders": "Track your orders",
+
+  "ongoing_orders": "Ongoing Orders",
+  "completed_orders": "Completed Orders",
+  "all_category": "All Category",
+  "confirm_order": "Confirm Order",
+  "clear": "Clear",
+  "pay": "Pay",
+  "payment_info": "Payment Info",
+  "sub_total": "Sub Total",
+  "item_total": "Item Total",
+  "delivery_charges": "Delivery Charges",
+  "amount_to_pay": "Amount to Pay",
+  "delivery_to": "Delivery To",
+  "change": "Change",
+  "gst": "GST Policy",
+  "wishlist": "Wishlist",
+  "privacy": "Privacy Policy",
+  "privacy_subtext": "Read Privacy Policy & Data Protection ",
+  "cancel_orders": "Cancel Orders"
+}

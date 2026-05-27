@@ -1,0 +1,61 @@
+{
+  "login": "लॉगिन",
+  "register": "रजिस्टर",
+  "home": "होम",
+  "welcome": "स्वागत है",
+
+  "cart": "कार्ट",
+  "account": "अकाउंट",
+  "my_account": "मेरा अकाउंट",
+  "my_activity": "मेरी गतिविधि",
+
+  "saved_addresses": "सेव किए गए पते",
+  "manage_delivery_addresses": "अपने डिलीवरी पते मैनेज करें",
+
+  "notification": "सूचनाएं",
+  "view_latest_offers": "नवीनतम ऑफर और अपडेट देखें",
+
+  "change_language": "भाषा बदलें",
+  "change_app_language": "ऐप की भाषा बदलें",
+
+  "more": "और अधिक",
+
+  "terms_conditions": "नियम और शर्तें",
+  "read_policies": "हमारी नीतियां पढ़ें",
+
+  "support": "सहायता",
+  "need_help_support": "मदद चाहिए? सपोर्ट से संपर्क करें",
+
+  "about_us": "हमारे बारे में",
+  "know_more_about_us": "हमारे बारे में और जानें",
+
+  "settings": "सेटिंग्स",
+  "app_preferences": "ऐप प्राथमिकताएं",
+
+  "logout": "लॉगआउट",
+  "logout_account": "अपने अकाउंट से लॉगआउट करें",
+
+  "orders": "ऑर्डर्स",
+  "track_orders": "अपने ऑर्डर्स ट्रैक करें",
+
+  "ongoing_orders": "चालू ऑर्डर्स",
+  "completed_orders": "पूर्ण ऑर्डर्स",
+  "all_category": "सभी कैटेगरी",
+
+
+  "confirm_order": "ऑर्डर कन्फर्म करें",
+  "clear": "साफ करें",
+  "pay": "भुगतान करें",
+  "payment_info": "भुगतान जानकारी",
+  "sub_total": "कुल राशि",
+  "item_total": "कुल सामान राशि",
+  "delivery_charges": "डिलीवरी शुल्क",
+  "amount_to_pay": "भुगतान की राशि",
+  "delivery_to": "डिलीवरी पता",
+  "change": "बदलें",
+  "gst": "जीएसटी नीति",
+  "wishlist": "मेरी पसंद",
+  "privacy": "गोपनीयता नीति",
+  "privacy_subtext": " प्राइवेसी पॉलिसी और डेटा सुरक्षा पढ़ें",
+  "cancel_orders": "कैंसिल ऑर्डर"
+}

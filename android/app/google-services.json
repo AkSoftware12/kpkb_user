@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "397432293778",
+    "project_id": "kpkb-dfc71",
+    "storage_bucket": "kpkb-dfc71.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:397432293778:android:1e4f36a6d719e1773d194b",
+        "android_client_info": {
+          "package_name": "com.kpkb.driver"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKqYfO8j93m080n2I7kianw8WIV0i3sh8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:397432293778:android:7cc842296375d6d73d194b",
+        "android_client_info": {
+          "package_name": "com.kpkb.user"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKqYfO8j93m080n2I7kianw8WIV0i3sh8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
