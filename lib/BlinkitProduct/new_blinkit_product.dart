@@ -268,6 +268,7 @@ class _ProductsScreenState extends State<ProductsScreen>
             jsonData["data"] is List) {
           final List list = jsonData["data"];
 
+          if (!mounted) return;
           setState(() {
             wishlistProductIds = list
                 .map((e) => int.tryParse(e["product_id"].toString()) ?? 0)
@@ -310,6 +311,9 @@ class _ProductsScreenState extends State<ProductsScreen>
 
   @override
   void dispose() {
+    searchController.dispose();
+    _controller.dispose();
+    tabController?.dispose();
     super.dispose();
   }
 
@@ -353,6 +357,7 @@ class _ProductsScreenState extends State<ProductsScreen>
   void getCartCount() {
     DatabaseHelper db = DatabaseHelper.instance;
     db.queryRowCount().then((value) {
+      if (!mounted) return;
       setState(() {
         if (value != null && value > 0) {
           cartCount = value;
@@ -373,6 +378,7 @@ class _ProductsScreenState extends State<ProductsScreen>
       List<RestaurantCartItem> tagObjs =
       value.map((tagJson) => RestaurantCartItem.fromJson(tagJson)).toList();
       if (tagObjs.isNotEmpty) {
+        if (!mounted) return;
         setState(() {
           restrocart = 1;
         });
@@ -406,6 +412,7 @@ class _ProductsScreenState extends State<ProductsScreen>
         total += price - gstOffAmount;
       }
 
+      if (!mounted) return;
       setState(() {
         totalAmount = total.toStringAsFixed(2);
       });
@@ -426,6 +433,27 @@ class _ProductsScreenState extends State<ProductsScreen>
         productVarientList = List.from(productVarientListSearch);
       });
     }
+  }
+
+  // ✅ Tap anywhere on the card (ya image par) -> product details kholo,
+  //    aur wapas aane par cart quantity refresh kar do.
+  Future<void> _openDetails(ProductWithVarient product) async {
+    final item =
+    product.data.isNotEmpty ? product.data[product.selectPos] : null;
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProductDetailsScreen(
+          productId: item?.product_id,
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+    setState(() {});
+    getCartCount();
+    refreshQuantities();
   }
 
   @override
@@ -505,7 +533,8 @@ class _ProductsScreenState extends State<ProductsScreen>
               ),
               onPressed: () async {
                 Navigator.pushNamed(context, PageRoutes.viewCart).then((value) {
-                  setList(productVarientList);
+                  if (!mounted) return;
+                  refreshQuantities();
                   getCartCount();
                 });
               },
@@ -515,7 +544,9 @@ class _ProductsScreenState extends State<ProductsScreen>
       ),
       body: Stack(
         children: [
-          if (!isFetchList && productVarientList.isNotEmpty)
+          if (isFetchList)
+            _buildShimmerList()
+          else if (productVarientList.isNotEmpty)
             ListView.builder(
               padding: EdgeInsets.fromLTRB(
                 5.w,
@@ -525,16 +556,14 @@ class _ProductsScreenState extends State<ProductsScreen>
               ),
               itemCount: productVarientList.length,
               itemBuilder: (context, index) {
-                final product = productVarientList[index];
-
                 return GestureDetector(
-                  onTap: () {
-
-                  },
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _openDetails(productVarientList[index]),
                   child: _productListCard(index),
                 );
               },
-            )          else
+            )
+          else
             _emptyOrLoadingWidget(),
 
           _bottomCartBar(),
@@ -579,25 +608,7 @@ class _ProductsScreenState extends State<ProductsScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
-            onTap: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ProductDetailsScreen(
-                    productId: item?.product_id,
-                  ),
-                ),
-              );
-
-              if (!mounted) return;
-
-              setState(() {
-                // cart qty / button UI refresh
-              });
-
-              getCartCount();
-              setList(productVarientList); // agar ye method cart qty set karta hai
-            },
+            onTap: () => _openDetails(product),
             child: Stack(
               children: [
                 ClipRRect(
@@ -614,25 +625,22 @@ class _ProductsScreenState extends State<ProductsScreen>
                     fit: BoxFit.cover,
 
                     // FAST LOAD
-                    memCacheHeight: 300,
-                    memCacheWidth: 300,
-                    maxHeightDiskCache: 600,
-                    maxWidthDiskCache: 600,
+                    memCacheHeight: 220,
+                    memCacheWidth: 220,
+                    maxHeightDiskCache: 220,
+                    maxWidthDiskCache: 220,
 
                     fadeInDuration: Duration.zero,
                     fadeOutDuration: Duration.zero,
                     placeholderFadeInDuration: Duration.zero,
 
-                    // ✅ no progressbar
+                    // ✅ shimmer placeholder
                     placeholder: (_, __) {
-                      return Container(
-                        height: 110.sp,
-                        width: 110.sp,
-                        color: Colors.grey.shade100,
-                        child: Icon(
-                          Icons.photo,
-                          color: Colors.grey,
-                          size: 35.sp,
+                      return _Shimmer(
+                        child: Container(
+                          height: 110.sp,
+                          width: 110.sp,
+                          color: Colors.white,
                         ),
                       );
                     },
@@ -769,24 +777,24 @@ class _ProductsScreenState extends State<ProductsScreen>
                         color: Colors.black,
                       ),
                     ),
-                    SizedBox(width: 8.sp,),
-                    if (item != null)
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 0.h),
-                        decoration: BoxDecoration(
-                          color: Colors.red.shade50,
-                          borderRadius: BorderRadius.circular(8.r),
-                          border: Border.all(color: Colors.red.shade200),
-                        ),
-                        child: Text(
-                          'GST Inc. ${item.gst}%',
-                          style: GoogleFonts.cabin(
-                            fontSize: 9.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red,
-                          ),
-                        ),
-                      ),
+                    // SizedBox(width: 8.sp,),
+                    // if (item != null)
+                    //   Container(
+                    //     padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 0.h),
+                    //     decoration: BoxDecoration(
+                    //       color: Colors.red.shade50,
+                    //       borderRadius: BorderRadius.circular(8.r),
+                    //       border: Border.all(color: Colors.red.shade200),
+                    //     ),
+                    //     child: Text(
+                    //       'GST Inc. ${item.gst}%',
+                    //       style: GoogleFonts.cabin(
+                    //         fontSize: 9.sp,
+                    //         fontWeight: FontWeight.bold,
+                    //         color: Colors.red,
+                    //       ),
+                    //     ),
+                    //   ),
                   ],
                 ),
 
@@ -850,19 +858,10 @@ class _ProductsScreenState extends State<ProductsScreen>
       return InkWell(
         borderRadius: BorderRadius.circular(24.r),
         onTap: () {
-            //
-            // if (restrocart == 1) {
-            //   showMyDialog(context);
-            // } else {
-            //   _increaseProduct(index);
-            // }
 
           if (product.data.length == 1) {
-            if (restrocart == 1) {
-              showMyDialog(context);
-            } else {
-              _increaseProduct(index);
-            }
+            _increaseProduct(index);
+
           } else {
             _showVariantSheet(index);
           }
@@ -929,31 +928,37 @@ class _ProductsScreenState extends State<ProductsScreen>
     final item = product.data[product.selectPos];
     final int stock = int.tryParse(item.stock.toString()) ?? 0;
 
+    // ✅ guard checks setState ke bahar (toast ab return ke saath theek se kaam karega)
+    if (product.add_qnty >= 10) {
+      Fluttertoast.showToast(msg: "You can add maximum 10 only");
+      return;
+    }
+
+    if (stock <= product.add_qnty) {
+      Fluttertoast.showToast(msg: "Only $stock in stock");
+      return;
+    }
+
     setState(() {
-      if (product.add_qnty >= 10) {
-        Fluttertoast.showToast(msg: "You can add maximum 10 only");
-        return;
-      }
-
-      if (stock > product.add_qnty) {
-        product.add_qnty++;
-
-        addOrMinusProduct(
-          product.is_id,
-          product.is_pres,
-          product.isbasket,
-          product.product_name,
-          item.unit,
-          double.parse('${item.price}'),
-          int.parse('${item.quantity}'),
-          product.add_qnty,
-          item.varient_image,
-          item.varient_id,
-          product.data[0].vendor_id,
-          product.data[0].gst,
-        );
-      }
+      product.add_qnty++;
     });
+
+    addOrMinusProduct(
+      product.is_id,
+      product.is_pres,
+      product.isbasket,
+      product.product_name,
+      item.unit,
+      double.parse('${item.price}'),
+      int.parse('${item.quantity}'),
+      product.add_qnty,
+      item.varient_image,
+      item.varient_id,
+      product.data[0].vendor_id,
+      product.data[0].gst,
+      product.data[0].size,
+      product.data[0].color,
+    );
   }
 
   void _decreaseProduct(int index) {
@@ -964,35 +969,48 @@ class _ProductsScreenState extends State<ProductsScreen>
       if (product.add_qnty > 0) {
         product.add_qnty--;
       }
-
-      addOrMinusProduct(
-        product.is_id,
-        product.is_pres,
-        product.isbasket,
-        product.product_name,
-        item.unit,
-        double.parse('${item.price}'),
-        int.parse('${item.quantity}'),
-        product.add_qnty,
-        item.varient_image,
-        item.varient_id,
-        product.data[0].vendor_id,
-        product.data[0].gst,
-      );
     });
+
+    addOrMinusProduct(
+      product.is_id,
+      product.is_pres,
+      product.isbasket,
+      product.product_name,
+      item.unit,
+      double.parse('${item.price}'),
+      int.parse('${item.quantity}'),
+      product.add_qnty,
+      item.varient_image,
+      item.varient_id,
+      product.data[0].vendor_id,
+      product.data[0].gst,
+      product.data[0].size,
+      product.data[0].color,
+    );
   }
 
   void _showVariantSheet(int index) {
     final product = productVarientList[index];
 
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true, // important
       builder: (_) {
         return StatefulBuilder(
           builder: (context, sheetSetState) {
             return Container(
-              padding: EdgeInsets.all(16.sp),
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.55,
+              ),
+              padding: EdgeInsets.only(
+                left: 10.sp,
+                right: 10.sp,
+                top: 10.sp,
+                // keyboard + safe area ko handle karta hai
+                bottom: MediaQuery.of(context).viewInsets.bottom + 16.sp,
+              ),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(26.r)),
@@ -1000,62 +1018,236 @@ class _ProductsScreenState extends State<ProductsScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    height: 5.h,
-                    width: 45.w,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(20.r),
-                    ),
-                  ),
-                  SizedBox(height: 14.h),
-                  Text(
-                    product.product_name,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  SizedBox(height: 12.h),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: product.data.length,
-                    itemBuilder: (context, i) {
-                      final entry = product.data[i];
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(width: 40.w), // balance ke liye
+                      Column(
+                        children: [
+                          Container(
+                            height: 5.h,
+                            width: 45.w,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(20.r),
+                            ),
+                          ),
+                          // SizedBox(height: 5.h),
+                          // Text(
+                          //   product.product_name,
+                          //   textAlign: TextAlign.center,
+                          //   style: TextStyle(
+                          //     fontSize: 16.sp,
+                          //     fontWeight: FontWeight.w900,
+                          //   ),
+                          // ),
+                          // SizedBox(height: 5.h),
+                        ],
+                      ),
 
-                      return RadioListTile<VarientList>(
-                        value: entry,
-                        groupValue: product.data[product.selectPos],
-                        activeColor: kButtonColor,
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          '${entry.quantity} ${entry.unit}',
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w700,
+                      // ✅ Close Button - Right Side
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          width: 40.w,
+                          alignment: Alignment.topRight,
+                          padding: EdgeInsets.only(right: 8.w),
+                          child: Icon(
+                            Icons.close,
+                            size: 22.sp,
+                            color: Colors.black87,
                           ),
                         ),
-                        secondary: Text(
-                          '$currency ${entry.price}',
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        onChanged: (value) {
-                          sheetSetState(() {
-                            product.selectPos = i;
-                          });
-
-                          setState(() {
-                            product.selectPos = i;
-                          });
-                        },
-                      );
-                    },
+                      ),
+                    ],
                   ),
+                  SizedBox(
+                    height: 10.sp,
+                  ),
+                  // List ab scroll hogi, overflow nahi karegi
+                  Flexible(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      padding: EdgeInsets.zero,
+                      itemCount: product.data.length,
+                      itemBuilder: (context, i) {
+                        final entry = product.data[i];
+                        final isSelected = product.selectPos == i;
+                        final bool inStock =
+                            (int.tryParse(entry.stock.toString()) ?? 0) > 0;
+
+                        return GestureDetector(
+                          onTap: () {
+                            sheetSetState(() => product.selectPos = i);
+                            setState(() => product.selectPos = i);
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            margin: EdgeInsets.symmetric(vertical: 6.h),
+                            padding: EdgeInsets.all(3.w),
+                            decoration: BoxDecoration(
+                              color: isSelected ? kButtonColor.withOpacity(0.06) : Colors.white,
+                              borderRadius: BorderRadius.circular(16.r),
+                              border: Border.all(
+                                color: isSelected ? kButtonColor : Colors.grey.shade200,
+                                width: isSelected ? 1.8 : 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: isSelected
+                                      ? kButtonColor.withOpacity(0.12)
+                                      : Colors.black.withOpacity(0.03),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    // 👈 LEFT: Image thumbnail (✅ ab cached - fast load)
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(10.r),
+                                      child: Container(
+                                        width: 80.w,
+                                        height: 80.w,
+                                        color: Colors.grey.shade100,
+                                        child: entry.varient_image != null && entry.varient_image.toString().isNotEmpty
+                                            ? CachedNetworkImage(
+                                          imageUrl: imageBaseUrl + entry.varient_image.toString(),
+                                          fit: BoxFit.cover,
+                                          width: 80.w,
+                                          height: 80.w,
+                                          memCacheHeight: 160,
+                                          memCacheWidth: 160,
+                                          errorWidget: (_, __, ___) => Icon(
+                                            Icons.image_not_supported_outlined,
+                                            size: 22.sp,
+                                            color: Colors.grey.shade400,
+                                          ),
+                                          placeholder: (_, __) => _Shimmer(
+                                            child: Container(
+                                              width: 80.w,
+                                              height: 80.w,
+                                              color: Colors.black,
+
+                                            ),
+                                          ),
+                                        )
+                                            : Icon(
+                                          Icons.image_outlined,
+                                          size: 22.sp,
+                                          color: Colors.grey.shade400,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 5.w),
+
+                                    // 👇 CENTER: Column with Size, Color, Price, Stock
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            '${entry.product_name}',
+                                            style: TextStyle(
+                                              fontSize: 13.sp,
+                                              fontWeight: FontWeight.w900,
+                                              color:  Colors.black,
+                                            ),
+                                          ),
+                                          Row(
+                                            children: [
+                                              Text(
+                                                'Size : ${entry.size}',
+                                                style: TextStyle(
+                                                  fontSize: 12.sp,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                              SizedBox(width: 5.w),
+                                              Text(
+                                                'Color :  ${entry.color}',
+                                                style: TextStyle(
+                                                  fontSize: 12.sp,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(height: 5.h),
+                                          Row(
+                                            children: [
+                                              Text(
+                                                '$currency ${entry.strick_price}',
+                                                style: GoogleFonts.cabin(
+                                                  fontSize: 13.sp,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.grey,
+                                                  decoration: TextDecoration.lineThrough,
+                                                ),
+                                              ),
+                                              SizedBox(width: 5.w),
+                                              Text(
+                                                '$currency${entry.price}',
+                                                style: TextStyle(
+                                                    fontSize: 16.sp,
+                                                    fontWeight: FontWeight.w900,
+                                                    color: kButtonColor
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+
+
+                                          SizedBox(height: 4.h),
+                                          Text(
+                                            inStock ? 'Available in Stock: ${entry.stock}' : 'Out of Stock',
+                                            style: TextStyle(
+                                              fontSize: 12.sp,
+                                              fontWeight: FontWeight.w600,
+                                              color: inStock ? Colors.green : Colors.grey,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(width: 12.w),
+
+                                    // 👉 RIGHT: Radio button
+                                    AnimatedContainer(
+                                      duration: const Duration(milliseconds: 200),
+                                      width: 22.w,
+                                      height: 22.w,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: isSelected ? kButtonColor : Colors.grey.shade400,
+                                          width: 2,
+                                        ),
+                                        color: isSelected ? kButtonColor : Colors.transparent,
+                                      ),
+                                      child: isSelected
+                                          ? Icon(Icons.check, size: 14.sp, color: Colors.white)
+                                          : null,
+                                    ),
+                                  ],
+                                ),
+
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
                   SizedBox(height: 12.h),
                   SizedBox(
                     width: double.infinity,
@@ -1091,6 +1283,70 @@ class _ProductsScreenState extends State<ProductsScreen>
           },
         );
       },
+    );
+  }
+
+  // ✅ SHIMMER LOADING LIST (loading ke time product card jaisa skeleton dikhega)
+  Widget _buildShimmerList() {
+    return ListView.builder(
+      padding: EdgeInsets.fromLTRB(5.w, 5.h, 5.w, 20.h),
+      itemCount: 7,
+      physics: const NeverScrollableScrollPhysics(),
+      itemBuilder: (_, __) => _shimmerCard(),
+    );
+  }
+
+  Widget _shimmerBox({double? w, double? h, double radius = 8}) {
+    return Container(
+      width: w,
+      height: h,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(radius),
+      ),
+    );
+  }
+
+  Widget _shimmerCard() {
+    return _Shimmer(
+      child: Container(
+        margin: EdgeInsets.only(bottom: 8.h),
+        padding: EdgeInsets.all(5.sp),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(5.r),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _shimmerBox(w: 110.sp, h: 110.sp, radius: 16),
+            SizedBox(width: 10.w),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 4.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _shimmerBox(w: double.infinity, h: 14.h),
+                    SizedBox(height: 8.h),
+                    _shimmerBox(w: 150.w, h: 14.h),
+                    SizedBox(height: 14.h),
+                    _shimmerBox(w: 90.w, h: 16.h),
+                    SizedBox(height: 12.h),
+                    _shimmerBox(w: 120.w, h: 12.h),
+                    SizedBox(height: 16.h),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: _shimmerBox(w: 90.w, h: 32.h, radius: 24),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1181,7 +1437,7 @@ class _ProductsScreenState extends State<ProductsScreen>
             onTap: () async {
               Navigator.pushNamed(context, PageRoutes.viewCart).then((value) {
                 if (!context.mounted) return;
-                setList(productVarientList);
+                refreshQuantities();
                 getCartCount();
               });
             },
@@ -1251,7 +1507,7 @@ class _ProductsScreenState extends State<ProductsScreen>
 
 
   void addOrMinusProduct(is_id, is_pres, isBasket, product_name, unit, price,
-      quantity, itemCount, varient_image, varient_id, vendor,gst) async {
+      quantity, itemCount, varient_image, varient_id, vendor,gst,selectedSize,selectedColor) async {
     DatabaseHelper db = DatabaseHelper.instance;
     Future<int?> existing = db.getcount(int.parse('${varient_id}'));
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -1277,6 +1533,9 @@ class _ProductsScreenState extends State<ProductsScreen>
         DatabaseHelper.productImage: safeImage,
         DatabaseHelper.gst: gst,
 
+        DatabaseHelper.size: selectedSize,   // null bhi ho sakta hai
+        DatabaseHelper.color: selectedColor, // null bhi ho sakta hai
+
         DatabaseHelper.is_pres: is_pres,
         DatabaseHelper.is_id: is_id,
         DatabaseHelper.isBasket: isBasket,
@@ -1296,7 +1555,7 @@ class _ProductsScreenState extends State<ProductsScreen>
             } else {
               db.delete(int.parse('${varient_id}'));
               showMyDialog2(context);
-              setList(productVarientList);
+              refreshQuantities();
             }
           });
         } else {
@@ -1356,44 +1615,46 @@ class _ProductsScreenState extends State<ProductsScreen>
             List<ProductWithVarient> tagObjs = tagObjsJson
                 .map((tagJson) => ProductWithVarient.fromJson(tagJson))
                 .toList();
+
+            if (!mounted) return;
             setState(() {
-              productVarientList.clear();
-              productVarientListSearch.clear();
               productVarientList = tagObjs;
-              print("productvarient list is 1 : ${productVarientList}");
-              print(
-                  "productvarient list is 1 : ${productVarientList[0].data
-                      .length}");
-              setList(tagObjs);
+              productVarientListSearch = List.from(tagObjs);
+            });
 
-              // ✅ Product images ko pehle se cache me load kar do
-              for (final p in tagObjs) {
-                if (p.data.isNotEmpty) {
-                  final img = p.data[p.selectPos].varient_image.toString();
+            // cart quantity sync
+            setList(tagObjs);
 
-                  if (img.trim().isNotEmpty) {
-                    precacheImage(
-                      CachedNetworkImageProvider(imageBaseUrl + img),
-                      context,
-                    );
-                  }
+            // ✅ Product images ko pehle se cache me load kar do (setState ke bahar)
+            for (final p in tagObjs) {
+              if (p.data.isNotEmpty) {
+                final img = p.data[p.selectPos].varient_image.toString();
+
+                if (img.trim().isNotEmpty && mounted) {
+                  precacheImage(
+                    CachedNetworkImageProvider(imageBaseUrl + img),
+                    context,
+                  );
                 }
               }
-            });
+            }
           }
+          if (!mounted) return;
           setState(() {
             isFetchList = false;
           });
         } else {
+          if (!mounted) return;
           setState(() {
             productVarientList.clear();
+            productVarientListSearch.clear();
             isFetchList = false;
           });
         }
       }
     } on Exception catch (_) {
       Timer(Duration(seconds: 5), () {
-        hitTabSeriveList(subCatId);
+        if (mounted) hitTabSeriveList(subCatId);
       });
     }
   }
@@ -1401,7 +1662,7 @@ class _ProductsScreenState extends State<ProductsScreen>
   hitViewCart(BuildContext context) {
     if (isCartCount) {
       Navigator.pushNamed(context, PageRoutes.viewCart).then((value) {
-        setList(productVarientList);
+        refreshQuantities();
         getCartCount();
       });
     } else {
@@ -1410,23 +1671,50 @@ class _ProductsScreenState extends State<ProductsScreen>
 
   Future<void> getData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
-      message = prefs.getString("message")!;
-      curency = prefs.getString("curency")!;
+      message = prefs.getString("message") ?? "";
+      curency = prefs.getString("curency") ?? "";
     });
   }
 
-  // ✅ FIXED: backup hamesha poori list (tagObjs) ka banega
+  // ✅ Sirf cart quantity refresh karta hai – FULL backup list (productVarientListSearch)
+  //    par chalta hai, isliye search active hone par bhi backup clobber nahi hota.
+  void refreshQuantities() {
+    final list = productVarientListSearch.isNotEmpty
+        ? productVarientListSearch
+        : productVarientList;
+
+    DatabaseHelper db = DatabaseHelper.instance;
+
+    for (int i = 0; i < list.length; i++) {
+      if (list[i].data.isEmpty) continue;
+
+      final int varientId = int.tryParse(
+          '${list[i].data[list[i].selectPos].varient_id}') ??
+          0;
+
+      db.getVarientCount(varientId).then((value) {
+        if (!mounted) return;
+        setState(() {
+          list[i].add_qnty = value ?? 0;
+        });
+      });
+    }
+  }
+
+  // initial population ke liye: backup set + quantity sync
   void setList(List<ProductWithVarient> tagObjs) {
+    DatabaseHelper db = DatabaseHelper.instance;
     for (int i = 0; i < tagObjs.length; i++) {
       if (tagObjs[i].data.length > 0) {
         print("PRES: " + tagObjs[i].is_pres.toString());
-        DatabaseHelper db = DatabaseHelper.instance;
         db
             .getVarientCount(int.parse(
             '${tagObjs[i].data[tagObjs[i].selectPos].varient_id}'))
             .then((value) {
           print('print val $value');
+          if (!mounted) return;
           if (value == null) {
             setState(() {
               tagObjs[i].add_qnty = 0;
@@ -1465,6 +1753,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                 .map((tagJson) => VendorList.fromJson(tagJson))
                 .toList();
 
+            if (!mounted) return;
             setState(() {
               nearStores.clear();
               nearStores = tagObjs;
@@ -1496,6 +1785,7 @@ class _ProductsScreenState extends State<ProductsScreen>
             List<VendorList> tagObjs = tagObjsJson
                 .map((tagJson) => VendorList.fromJson(tagJson))
                 .toList();
+            if (!mounted) return;
             setState(() {
               newnearStores.clear();
               newnearStores = tagObjs;
@@ -1503,8 +1793,10 @@ class _ProductsScreenState extends State<ProductsScreen>
           }
         }
       } on Exception catch (_) {
+        // ✅ FIX: pehle yahan undefined `hitService(...)` call thi (compile/runtime bug).
+        //    Ab safe retry – same method dobara try karega.
         Timer(Duration(seconds: 5), () {
-          hitService(lat.toString(), lng.toString());
+          if (mounted) hitServiceBanner(lat, lng);
         });
       }
     }
@@ -1522,6 +1814,75 @@ class _ProductsScreenState extends State<ProductsScreen>
               new AppCategory(detail.vendorCategoryId,
                   detail.vendorName, detail.vendorId, "22")));
     }
+  }
+}
+
+// ✅ Reusable shimmer effect (koi extra package nahi chahiye)
+class _Shimmer extends StatefulWidget {
+  final Widget child;
+
+  const _Shimmer({required this.child});
+
+  @override
+  State<_Shimmer> createState() => _ShimmerState();
+}
+
+class _ShimmerState extends State<_Shimmer>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, child) {
+        return ShaderMask(
+          blendMode: BlendMode.srcATop,
+          shaderCallback: (bounds) {
+            final double slide = (_ctrl.value * 2) - 1; // -1 .. 1
+            return LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: const [
+                Color(0xFFE7E9EC),
+                Color(0xFFF4F6F8),
+                Color(0xFFE7E9EC),
+              ],
+              stops: const [0.1, 0.5, 0.9],
+              transform: _SlideGradient(slide),
+            ).createShader(bounds);
+          },
+          child: child,
+        );
+      },
+      child: widget.child,
+    );
+  }
+}
+
+class _SlideGradient extends GradientTransform {
+  final double slide;
+
+  const _SlideGradient(this.slide);
+
+  @override
+  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
+    return Matrix4.translationValues(bounds.width * slide, 0.0, 0.0);
   }
 }
 
@@ -1662,124 +2023,6 @@ showMyDialog2(BuildContext context) {
           ],
         );
       });
-}
-
-class BackendService {
-  static Future<List<ProductWithVarient>> getSuggestions(String query,
-      dynamic vendor_id) async {
-    if (query.isEmpty && query.length < 2) {
-      print('Query needs to be at least 3 chars');
-      return Future.value([]);
-    }
-
-    var url = storesearch;
-    Uri myUri = Uri.parse(url);
-    var response = await http.post(myUri,
-        body: {'vendor_id': vendor_id.toString(),
-          'prod_name': query});
-
-    List<ProductWithVarient> vendors = [];
-    List<ProductWithVarient> vendors1 = [];
-
-    if (response.statusCode == 200) {
-      Iterable json1 = jsonDecode(response.body)['product'];
-      Iterable json2 = jsonDecode(response.body)['cat'];
-
-      if (json1.isNotEmpty) {
-        vendors.clear();
-        vendors = List<ProductWithVarient>.from(
-            json1.map((model) => ProductWithVarient.fromJson(model)));
-      }
-      if (json2.isNotEmpty) {
-        vendors1.clear();
-        vendors1 = List<ProductWithVarient>.from(
-            json2.map((model) => ProductWithVarient.fromJson(model)));
-        vendors.addAll(vendors1);
-      }
-    }
-
-    return Future.value(vendors);
-  }
-}
-
-const subCategory = [
-  "Milk",
-  "Bread & Pav",
-  "Butter & Cheese",
-  "Paneer & Curd",
-  "Eggs",
-  "Oats",
-  "Flakes & Cereals",
-  "Vermicelli",
-  "Peanut Butter",
-  "Condensed Milk"
-];
-
-
-const productDetails =
-'''Amul Taaza Toned Milk (Polypack) is pasteurized with a great nutritional value. It can be consumed directly or can be used for preparing tea, coffee, sweets, khoya, curd, buttermilk, ghee etc.''';
-
-class ProductCard extends StatelessWidget {
-  const ProductCard({super.key, required this.index});
-
-  final int index;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Image.asset("Assets/Products/${index + 1}.png"),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Amul Milk",
-                    maxLines: 1,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ),
-                  Text(
-                    "300gms",
-                    maxLines: 1,
-                    style: Theme
-                        .of(context)
-                        .textTheme
-                        .displaySmall,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "₹ 100",
-                        maxLines: 1,
-                        style: TextStyle(
-                          fontSize: 14,
-                        ),
-                      ),
-                      buildAddToCartButton()
-                    ],
-                  )
-                ],
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 Widget buildAddToCartButton() {

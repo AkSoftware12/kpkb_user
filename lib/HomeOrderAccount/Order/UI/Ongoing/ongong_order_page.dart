@@ -389,6 +389,54 @@ class _OngoingOrderPageState extends State<OngoingOrderPage> {
                         fontWeight: FontWeight.w900,
                       ),
                     ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 5.w,
+                        vertical: 2.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: order.payment_status.toString().toLowerCase() == "success"
+                            ? Colors.green.shade50
+                            : Colors.orange.shade50,
+                        borderRadius: BorderRadius.circular(20.r),
+                        border: Border.all(
+                          color: order.payment_status.toString().toLowerCase() == "success"
+                              ? Colors.green
+                              : Colors.orange,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            order.payment_status.toString().toLowerCase() == "success"
+                                ? Icons.check_circle
+                                : Icons.pending,
+                            size: 14.sp,
+                            color: order.payment_status.toString().toLowerCase() == "success"
+                                ? Colors.green
+                                : Colors.orange,
+                          ),
+                          SizedBox(width: 5.w),
+                          Text(
+                            order.payment_status.toString().toLowerCase() == "success"
+                                ? "Paid"
+                                : "POD",
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w800,
+                              color: order.payment_status.toString().toLowerCase() == "success"
+                                  ? Colors.green.shade700
+                                  : Colors.orange.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+
                   ],
                 ),
               ],

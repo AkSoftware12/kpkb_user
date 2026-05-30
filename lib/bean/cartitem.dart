@@ -11,6 +11,8 @@ class CartItem{
   dynamic varient_id;
   dynamic product_img;
   dynamic gst;
+  dynamic size;
+  dynamic color;
 
   dynamic is_id;
   dynamic is_pres;
@@ -18,10 +20,10 @@ class CartItem{
   dynamic addedBasket;
 
   CartItem(this.store_name,this.vendor_id,this._id, this.product_name, this.qnty, this.price, this.unit,
-      this.add_qnty, this.varient_id, this.product_img,this.gst,this.is_id,this.is_pres,this.isBasket,this.addedBasket);
+      this.add_qnty, this.varient_id, this.product_img,this.gst,this.size,this.color,this.is_id,this.is_pres,this.isBasket,this.addedBasket);
 
   factory CartItem.fromJson(dynamic json){
-    return CartItem(json['store_name'],json['vendor_id'],json['_id'], json['product_name'], json['qnty'], json['price'], json['unit'], json['add_qnty'], json['varient_id'], json['product_img'],json['gst'],json['is_id'],json['is_pres'],json['isBasket'],json['addedBasket']);
+    return CartItem(json['store_name'],json['vendor_id'],json['_id'], json['product_name'], json['qnty'], json['price'], json['unit'], json['add_qnty'], json['varient_id'], json['product_img'],json['gst'],json['size'],json['color'],json['is_id'],json['is_pres'],json['isBasket'],json['addedBasket']);
   }
 
   @override

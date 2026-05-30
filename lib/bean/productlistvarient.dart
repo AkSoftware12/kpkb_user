@@ -41,6 +41,9 @@ class VarientList {
   dynamic product_id;
   dynamic quantity;
   dynamic unit;
+  dynamic product_name;
+  dynamic size;
+  dynamic color;
   dynamic strick_price;
   dynamic price;
   dynamic description;
@@ -56,6 +59,9 @@ class VarientList {
       this.product_id,
       this.quantity,
       this.unit,
+      this.product_name,
+      this.size,
+      this.color,
       this.strick_price,
       this.price,
       this.description,
@@ -67,12 +73,12 @@ class VarientList {
       this.add_qnty);
 
   factory VarientList.fromJson(dynamic json){
-    return VarientList(json['varient_id'], json['product_id'], json['quantity'], json['unit'], json['strick_price'], json['mrp_with_gst'], json['description'], json['varient_image'], json['vendor_id'], json['stock'],json['gst'],false,0);
+    return VarientList(json['varient_id'], json['product_id'], json['quantity'], json['unit'],json['product_name'],json['size'],json['color'], json['strick_price'], json['mrp_with_gst'], json['description'], json['varient_image'], json['vendor_id'], json['stock'],json['gst'],false,0);
     // return VarientList(json['varient_id'], json['product_id'], json['quantity'], json['unit'], json['strick_price'], json['mrp'], json['description'], json['varient_image'], json['vendor_id'], json['stock'],json['gst'],false,0);
   }
 
   @override
   String toString() {
-    return 'VarientList{varient_id: $varient_id, product_id: $product_id, quantity: $quantity, unit: $unit, strick_price: $strick_price, price: $price, description: $description, varient_image: $varient_image, vendor_id: $vendor_id, stock: $stock, gst: $gst}';
+    return 'VarientList{varient_id: $varient_id, product_id: $product_id, quantity: $quantity, unit: $unit,product_name: $product_name,size: $size,color: $color, strick_price: $strick_price, price: $price, description: $description, varient_image: $varient_image, vendor_id: $vendor_id, stock: $stock, gst: $gst}';
   }
 }

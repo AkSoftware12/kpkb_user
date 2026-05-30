@@ -596,38 +596,40 @@ class _OrderMapState extends State<OrderMap> {
                                           color: Color(0xffc1c1c1)),
                                     ),
                                     trailing: Column(
-                                      mainAxisAlignment: MainAxisAlignment
-                                          .center,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.end,
                                       children: <Widget>[
                                         Text(
-                                          '${widget.ongoingOrders
-                                              .order_status}',
-                                          style: orderMapAppBarTextStyle
-                                              .copyWith(
-                                              color: kMainColor),
+                                          '${widget.ongoingOrders.order_status}',
+                                          style: orderMapAppBarTextStyle.copyWith(
+                                            color: Colors.black,
+                                          ),
                                         ),
-                                        SizedBox(height: 7.0),
+
+                                        SizedBox(height: 4),
+
+
+
                                         Text(
-                                          '${widget.ongoingOrders.data
-                                              .length} items | ${widget
-                                              .currency} ${widget
-                                              .ongoingOrders.new_price}',
-                                          style: Theme
-                                              .of(context)
+                                          '${widget.ongoingOrders.data.length} items | ${widget.currency} ${widget.ongoingOrders.new_price}',
+                                          style: Theme.of(context)
                                               .textTheme
                                               .titleLarge!
                                               .copyWith(
-                                              fontSize: 11.7,
-                                              letterSpacing: 0.06,
-                                              color: Color(
-                                                  0xffc1c1c1)),
-                                        )
+                                            fontSize: 11.7,
+                                            letterSpacing: 0.06,
+                                            color: const Color(0xffc1c1c1),
+                                          ),
+                                        ),
+
+
                                       ],
                                     ),
                                   ),
                                 )
                               ],
                             ),
+
                             Divider(
                               color: kCardBackgroundColor,
                               thickness: 1.0,
@@ -722,6 +724,68 @@ class _OrderMapState extends State<OrderMap> {
                         .bodySmall!
                         .copyWith(
                         fontWeight: FontWeight.w500, fontSize: 15),
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 6.w,
+                      vertical: 2.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: widget.ongoingOrders.payment_status
+                          .toString()
+                          .toLowerCase() ==
+                          "success"
+                          ? Colors.green.shade50
+                          : Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(20.r),
+                      border: Border.all(
+                        color: widget.ongoingOrders.payment_status
+                            .toString()
+                            .toLowerCase() ==
+                            "success"
+                            ? Colors.green
+                            : Colors.orange,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          widget.ongoingOrders.payment_status
+                              .toString()
+                              .toLowerCase() ==
+                              "success"
+                              ? Icons.check_circle
+                              : Icons.pending,
+                          size: 12.sp,
+                          color: widget.ongoingOrders.payment_status
+                              .toString()
+                              .toLowerCase() ==
+                              "success"
+                              ? Colors.green
+                              : Colors.orange,
+                        ),
+                        SizedBox(width: 3.w),
+                        Text(
+                          widget.ongoingOrders.payment_status
+                              .toString()
+                              .toLowerCase() ==
+                              "success"
+                              ? "Paid"
+                              : "POD",
+                          style: TextStyle(
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w800,
+                            color: widget.ongoingOrders.payment_status
+                                .toString()
+                                .toLowerCase() ==
+                                "success"
+                                ? Colors.green.shade700
+                                : Colors.orange.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

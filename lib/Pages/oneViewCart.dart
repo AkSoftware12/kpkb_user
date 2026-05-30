@@ -12,6 +12,7 @@ import 'package:kpUser/Pages/payment_method.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../HomeOrderAccount/Account/UI/ListItems/saved_addresses_page.dart';
 import '../HomeOrderAccount/home_order_account.dart';
+import '../Routes/routes.dart';
 import '../Themes/colors.dart';
 import '../baseurlp/baseurl.dart';
 import '../bean/address.dart';
@@ -708,14 +709,14 @@ class _oneViewCartState extends State<oneViewCart> {
     await getCartItem();
     getCatC();
     await ordercharg();
-
-    if (cartListI.isEmpty && mounted) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => HomeOrderAccount(3, 1)),
-            (_) => false,
-      );
-    }
+    //
+    // if (cartListI.isEmpty && mounted) {
+    //   Navigator.pushAndRemoveUntil(
+    //     context,
+    //     MaterialPageRoute(builder: (_) => HomeOrderAccount(3, 1)),
+    //         (_) => false,
+    //   );
+    // }
   }
 
   Future<void> createCart(BuildContext context) async {
@@ -1066,6 +1067,8 @@ class _oneViewCartState extends State<oneViewCart> {
                     unit: '${item.qnty} ${item.unit}',
                     image: item.product_img,
                     gst:item.gst.toString(),
+                    size:item.size.toString(),
+                    color:item.color.toString(),
                   );
                 }).toList(),
 
@@ -1362,6 +1365,8 @@ class _oneViewCartState extends State<oneViewCart> {
     required String title,
     required String image,
     required String gst,
+    required String size,
+    required String color,
     required double price,
     required int qty,
     required String unit,
@@ -1493,7 +1498,30 @@ class _oneViewCartState extends State<oneViewCart> {
                   ],
                 ),
 
+                if ((size != null &&
+                    size.toString().trim().isNotEmpty &&
+                    size.toString().toLowerCase() != "null") ||
+                    (color != null &&
+                        color.toString().trim().isNotEmpty &&
+                        color.toString().toLowerCase() != "null"))
+                  Text(
+                    [
+                      if (size != null &&
+                          size.toString().trim().isNotEmpty &&
+                          size.toString().toLowerCase() != "null")
+                        size,
 
+                      if (color != null &&
+                          color.toString().trim().isNotEmpty &&
+                          color.toString().toLowerCase() != "null")
+                        color,
+                    ].join(" | "),
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13.sp,
+                    ),
+                  ),
                 //
                 // const SizedBox(height: 4),
                 //
@@ -2032,80 +2060,103 @@ class _oneViewCartState extends State<oneViewCart> {
             elevation: 8,
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+              child: Stack(
                 children: [
-                  // Icon circle
-                  Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.shopping_bag_outlined,
-                      color: Colors.red,
-                      size: 36,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Title
-                  const Text(
-                    "Ongoing Order Found",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Message
-                  Text(
-                    "Your previous order is still ongoing. Please complete or cancel it before placing a new order.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.grey[700],
-                      fontSize: 14,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // OK Button (full width)
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        elevation: 0,
-                      ),
+                  // ❌ Close icon - top right
+                  Positioned(
+                    top: -8,
+                    right: -8,
+                    child: IconButton(
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      child: const Text(
-                        "OK",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      icon:  Icon(
+                        Icons.close,
+                        color: kButtonColor,
+                        size: 22,
                       ),
                     ),
+                  ),
+
+                  // Main content
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Icon circle
+                      Container(
+                        width: 70,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.shopping_bag_outlined,
+                          color: Colors.red,
+                          size: 36,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Title
+                      const Text(
+                        "Ongoing Order Found",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Message
+                      Text(
+                        "Your previous order is still ongoing. Please complete or cancel it before placing a new order.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.grey[700],
+                          fontSize: 14,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // View Ongoing Order Button (full width)
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: kButtonColor,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 0,
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.of(context, rootNavigator: true).pushNamed(
+                              PageRoutes.ongoingOrderPage,
+                            );
+                          },
+                          child: const Text(
+                            "View Ongoing Order",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
           ),
         );
-
         return;
       }
       final prefs =

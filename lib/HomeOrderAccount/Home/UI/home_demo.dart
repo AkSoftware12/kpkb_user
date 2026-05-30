@@ -72,9 +72,6 @@ class _HomeState extends State<HomePageDemo>
   http.Client? _searchClient;                 // request cancel karne ke liye
   final Map<String, List<dynamic>> _searchCache = {}; // fast repeat search cache
 
-
-
-
   @override
   void initState() {
     super.initState();
@@ -84,6 +81,7 @@ class _HomeState extends State<HomePageDemo>
   Future<void> _initFast() async {
     await Future.wait([
       _loadCachedCategories(),
+      _loadCachedBanners(), // FIX: banners bhi cache se turant load -> instant dikhe
       _loadBasicPrefs(),
       _getCartCountFast(),
     ]);
@@ -114,6 +112,21 @@ class _HomeState extends State<HomePageDemo>
     }
   }
 
+  // FIX: banner ko bhi category ki tarah cache se instant load karo
+  Future<void> _loadCachedBanners() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cache = prefs.getString('home_banners_cache');
+    if (cache != null && cache.isNotEmpty) {
+      try {
+        final List<dynamic> list = jsonDecode(cache);
+        banners = list;
+        if (mounted) setState(() {});
+        // pehle frame ke baad precache -> scroll/show karte hi ready
+        WidgetsBinding.instance.addPostFrameCallback((_) => _precacheBanners());
+      } catch (_) {}
+    }
+  }
+
   Future<void> _fetchCategories({bool refreshOnly = false}) async {
     try {
       if (mounted) {
@@ -138,7 +151,8 @@ class _HomeState extends State<HomePageDemo>
             'Authorization': 'Bearer $token',
         },
         body: jsonEncode({
-          'vendor_id': vendor.isNotEmpty ? vendor : 54,
+          // FIX: type consistent rakha (hamesha String) — mixed int/String se bachne ke liye
+          'vendor_id': vendor.isNotEmpty ? vendor : '54',
         }),
       )
           .timeout(const Duration(seconds: 12));
@@ -176,6 +190,9 @@ class _HomeState extends State<HomePageDemo>
         // Set banner data
         banners = bannersData;
 
+        // FIX: agar refresh ke baad banners kam ho gaye to _current out-of-range na rahe
+        if (_current >= banners.length) _current = 0;
+
         _applySearch(searchText, rebuild: false);
 
         setState(() {
@@ -184,6 +201,7 @@ class _HomeState extends State<HomePageDemo>
         });
 
         _precacheFirstCategoryImages();
+        _precacheBanners(); // FIX: banner images bhi pehle se precache
       } else {
         if (mounted) {
           setState(() {
@@ -215,6 +233,7 @@ class _HomeState extends State<HomePageDemo>
 
         if (bannerCache != null) {
           banners = jsonDecode(bannerCache);
+          if (_current >= banners.length) _current = 0;
         }
 
         _applySearch(searchText, rebuild: false);
@@ -230,8 +249,11 @@ class _HomeState extends State<HomePageDemo>
       }
     }
   }
+
   void _precacheFirstCategoryImages() {
+    if (!mounted) return;
     for (final cat in categories.take(8)) {
+      if (cat is! Map) continue;
       final img = cat['category_image']?.toString() ?? '';
       if (_isValidImage(img)) {
         precacheImage(CachedNetworkImageProvider('$imageBaseUrl$img'), context);
@@ -239,9 +261,31 @@ class _HomeState extends State<HomePageDemo>
     }
   }
 
+  // FIX: banner images ko category ki tarah pehle se memory me load karo
+  void _precacheBanners() {
+    if (!mounted) return;
+    for (final b in banners.take(5)) {
+      if (b is! Map) continue;
+      final url = _bannerUrl(b['banner_img']?.toString() ?? '');
+      if (url.isNotEmpty) {
+        precacheImage(CachedNetworkImageProvider(url), context);
+      }
+    }
+  }
+
   bool _isValidImage(String v) {
     final s = v.trim().toLowerCase();
     return s.isNotEmpty && s != 'null' && s != 'n/a';
+  }
+
+  // FIX: banner_img full URL ho ya relative path, dono handle ho jaye + null safe
+  String _bannerUrl(String v) {
+    final s = v.trim();
+    if (s.isEmpty || s.toLowerCase() == 'null' || s.toLowerCase() == 'n/a') {
+      return '';
+    }
+    if (s.startsWith('http://') || s.startsWith('https://')) return s;
+    return '$imageBaseUrl$s';
   }
 
   Future<void> _getCartCountFast() async {
@@ -252,8 +296,6 @@ class _HomeState extends State<HomePageDemo>
 
   // ─────────────────────────────────────────────────────
   //  CLEAR CART  (pura cart khaali karne ke liye)
-  //  ViewCart wale clearCart se match karta hai (deleteAll +
-  //  restaurant products + addons + prefs cleanup).
   // ─────────────────────────────────────────────────────
   Future<void> _clearCart() async {
     try {
@@ -393,7 +435,11 @@ class _HomeState extends State<HomePageDemo>
     filteredCategories = value.isEmpty
         ? categories
         : categories.where((cat) {
-      return cat['category_name'].toString().toLowerCase().contains(value);
+      // FIX: null-safe category_name
+      final name = cat is Map
+          ? (cat['category_name']?.toString().toLowerCase() ?? '')
+          : '';
+      return name.contains(value);
     }).toList();
     if (rebuild && mounted) setState(() {});
   }
@@ -446,8 +492,6 @@ class _HomeState extends State<HomePageDemo>
       ),
     );
   }
-
-
 
   // ─────────────────────────────────────────────────────
   //  APP BAR
@@ -534,22 +578,6 @@ class _HomeState extends State<HomePageDemo>
                     GestureDetector(
                       onTap: () async {
                         Navigator.pushNamed(context, PageRoutes.accountPage);
-
-
-
-
-                        // final prefs = await SharedPreferences.getInstance();
-                        // if (prefs.getBool('islogin') == true) {
-                        //   Navigator.pushNamed(context, PageRoutes.accountPage);
-                        // } else {
-                        //   Navigator.push(
-                        //     context,
-                        //     MaterialPageRoute(builder: (_) => GoMarket()),
-                        //   );
-                        //   Fluttertoast.showToast(
-                        //     msg: 'Please login to access your account.',
-                        //   );
-                        // }
                       },
                       child: Container(
                         width: 38,
@@ -598,7 +626,7 @@ class _HomeState extends State<HomePageDemo>
                         fontSize: 14,
                         color: Colors.grey.shade400,
                       ),
-                      prefixIcon: Icon(Icons.search_rounded, color: Colors.grey, size: 20),
+                      prefixIcon: const Icon(Icons.search_rounded, color: Colors.grey, size: 20),
                       suffixIcon: searchText.isNotEmpty
                           ? IconButton(
                         icon: const Icon(Icons.close_rounded, size: 18),
@@ -683,7 +711,7 @@ class _HomeState extends State<HomePageDemo>
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 90),
         itemCount: 8,
         separatorBuilder: (_, __) => const SizedBox(height: 10),
-        itemBuilder: (_, __) => _ShimmerBox(height: 78),
+        itemBuilder: (_, __) => const _ShimmerBox(height: 78),
       );
     }
 
@@ -693,8 +721,11 @@ class _HomeState extends State<HomePageDemo>
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           SizedBox(height: 100.h),
-          Icon(Icons.search_off_rounded,
-              size: 54, color: Colors.grey.shade400),
+          // FIX: icon ko center kiya (pehle left-align tha)
+          Center(
+            child: Icon(Icons.search_off_rounded,
+                size: 54, color: Colors.grey.shade400),
+          ),
           const SizedBox(height: 10),
           Center(
             child: Text(
@@ -742,15 +773,17 @@ class _HomeState extends State<HomePageDemo>
   // ─────────────────────────────────────────────────────
 
   Widget _buildBannerSection() {
+    // FIX: banners khaali ho to kuch render mat karo (crash/empty carousel se bacho)
+    if (banners.isEmpty) return const SizedBox.shrink();
+
     return Column(
       children: [
-        const SizedBox(height: 0),
         CarouselSlider.builder(
           itemCount: banners.length,
           itemBuilder: (context, index, _) => _buildBannerSlide(banners[index]),
           options: CarouselOptions(
             height: 200,
-            autoPlay: true,
+            autoPlay: banners.length > 1, // FIX: 1 banner pe autoplay ki zarurat nahi
             enlargeCenterPage: true,
             viewportFraction: 1,
             autoPlayInterval: const Duration(seconds: 3),
@@ -782,27 +815,35 @@ class _HomeState extends State<HomePageDemo>
     );
   }
 
-  Widget _buildBannerSlide(Map<String, dynamic> data) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(0),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // gradient bg
-          Container(
-            child: Image.network(data['banner_img'],fit: BoxFit.fill,),
-          ),
-          // decorative circle
+  // FIX: Image.network -> CachedNetworkImage (category jaisa fast + cache + no flicker)
+  Widget _buildBannerSlide(dynamic data) {
+    final raw = data is Map ? (data['banner_img']?.toString() ?? '') : '';
+    final url = _bannerUrl(raw);
 
-        ],
+    return SizedBox(
+      width: double.infinity,
+      child: url.isEmpty
+          ? Container(
+        color: Colors.grey.shade200,
+        child: Icon(Icons.image_rounded,
+            color: kMainColor.withOpacity(.3), size: 40),
+      )
+          : CachedNetworkImage(
+        imageUrl: url,
+        fit: BoxFit.fill,
+        // FIX: memory cache + fade off => category ki tarah turant render
+        memCacheWidth: 1080,
+        fadeInDuration: Duration.zero,
+        placeholderFadeInDuration: Duration.zero,
+        placeholder: (_, __) => Container(color: Colors.grey.shade200),
+        errorWidget: (_, __, ___) => Container(
+          color: Colors.grey.shade200,
+          child: Icon(Icons.broken_image_rounded,
+              color: kMainColor.withOpacity(.3), size: 40),
+        ),
       ),
     );
   }
-
-  // ─────────────────────────────────────────────────────
-  //  OFFER CHIPS
-  // ─────────────────────────────────────────────────────
-
 
   // ─────────────────────────────────────────────────────
   //  SECTION HEADER
@@ -824,14 +865,11 @@ class _HomeState extends State<HomePageDemo>
           ),
         ),
       ),
-
     );
   }
 
   // ─────────────────────────────────────────────────────
-  //  CART BAR  (ab SLIDE karke Clear Cart reveal hota hai)
-  //  → cart bar ko LEFT side swipe karo to "Clear Cart" red
-  //    background reveal hoga, pura swipe karne par cart clear.
+  //  CART BAR
   // ─────────────────────────────────────────────────────
 
   Widget _buildCartBar() {
@@ -841,9 +879,7 @@ class _HomeState extends State<HomePageDemo>
       bottom: 60.sp,
       child: Dismissible(
         key: const ValueKey('home-cart-bar'),
-        // sirf right-to-left (left ki taraf slide) pe clear
         direction: DismissDirection.endToStart,
-        // pura swipe hone par clear cart confirm karo
         confirmDismiss: (_) async {
           final confirm = await showDialog<bool>(
             context: context,
@@ -859,7 +895,6 @@ class _HomeState extends State<HomePageDemo>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ── icon circle ──
                     Container(
                       width: 68,
                       height: 68,
@@ -874,8 +909,6 @@ class _HomeState extends State<HomePageDemo>
                       ),
                     ),
                     const SizedBox(height: 18),
-
-                    // ── title ──
                     Text(
                       'Clear Cart?',
                       style: GoogleFonts.nunito(
@@ -885,8 +918,6 @@ class _HomeState extends State<HomePageDemo>
                       ),
                     ),
                     const SizedBox(height: 8),
-
-                    // ── subtitle ──
                     Text(
                       'This will remove all items from your cart. This action cannot be undone.',
                       textAlign: TextAlign.center,
@@ -897,11 +928,8 @@ class _HomeState extends State<HomePageDemo>
                       ),
                     ),
                     const SizedBox(height: 24),
-
-                    // ── buttons ──
                     Row(
                       children: [
-                        // Cancel
                         Expanded(
                           child: SizedBox(
                             height: 48,
@@ -925,8 +953,6 @@ class _HomeState extends State<HomePageDemo>
                           ),
                         ),
                         const SizedBox(width: 12),
-
-                        // Clear
                         Expanded(
                           child: SizedBox(
                             height: 48,
@@ -960,7 +986,6 @@ class _HomeState extends State<HomePageDemo>
           return confirm ?? false;
         },
         onDismissed: (_) => _clearCart(),
-        // slide karne par jo red "Clear Cart" background dikhta hai
         background: Container(
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.symmetric(horizontal: 22),
@@ -1001,17 +1026,11 @@ class _HomeState extends State<HomePageDemo>
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
                 color: Colors.white,
-                // gradient: LinearGradient(
-                //   colors: [kButtonColor, kButtonColor],
-                //   begin: Alignment.topLeft,
-                //   end: Alignment.bottomRight,
-                // ),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(width: 1.sp,color: kButtonColor)
             ),
             child: Row(
               children: [
-                // cart icon with badge
                 Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -1156,7 +1175,7 @@ class _HomeState extends State<HomePageDemo>
 }
 
 // ─────────────────────────────────────────────────────────
-//  _ShimmerBox  (replaces static grey box with animated shimmer)
+//  _ShimmerBox
 // ─────────────────────────────────────────────────────────
 
 class _ShimmerBox extends StatefulWidget {
@@ -1215,7 +1234,7 @@ class _ShimmerBoxState extends State<_ShimmerBox>
 }
 
 // ─────────────────────────────────────────────────────────
-//  _ProductSearchTile  (search API result row)
+//  _ProductSearchTile
 // ─────────────────────────────────────────────────────────
 
 class _ProductSearchTile extends StatelessWidget {
@@ -1236,33 +1255,19 @@ class _ProductSearchTile extends StatelessWidget {
     final price = product['price']?.toString() ?? '';
     final stock = product['stock'];
     final inStock = stock == null || (int.tryParse(stock.toString()) ?? 0) > 0;
+    // FIX: product_id null ho to crash na ho
+    final productId = product['product_id'];
 
     return GestureDetector(
       onTap: () async {
+        if (productId == null) return; // safety
         await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ProductDetailsScreen(productId: product['product_id']!,
-
-            ),
+            builder: (_) => ProductDetailsScreen(productId: productId),
           ),
         );
-        // detail se wapas aane par home ka cart count refresh
         if (onReturn != null) await onReturn!();
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (_) => ProductsScreen(
-        //       name,
-        //       product['vendor_id']?.toString() ?? '',
-        //       '',
-        //       product['category_id']?.toString() ?? '',
-        //       0,
-        //       0,
-        //       '',
-        //     ),
-        //   ),
-        // );
       },
       child: Container(
         padding: const EdgeInsets.all(10),
@@ -1280,7 +1285,6 @@ class _ProductSearchTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // image
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: Container(
@@ -1305,7 +1309,6 @@ class _ProductSearchTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            // name + price
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1334,14 +1337,17 @@ class _ProductSearchTile extends StatelessWidget {
                           ),
                         ),
                       const SizedBox(width: 8),
-                      Text(
-                        inStock ? 'In stock(${stock})' : 'Out of stock',
-                        style: GoogleFonts.outfit(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: inStock
-                              ? Colors.green.shade600
-                              : Colors.redAccent,
+                      Flexible(
+                        child: Text(
+                          inStock ? 'In stock($stock)' : 'Out of stock',
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.outfit(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: inStock
+                                ? Colors.green.shade600
+                                : Colors.redAccent,
+                          ),
                         ),
                       ),
                     ],
@@ -1399,7 +1405,9 @@ class _CategoryTileState extends State<_CategoryTile> {
         onTapCancel: () => setState(() => _pressed = false),
         onTap: () async {
           final subcategories = widget.category['subcategories'];
-          final hasSubCat = subcategories != null && subcategories.isNotEmpty;
+          final hasSubCat = subcategories != null &&
+              subcategories is List &&
+              subcategories.isNotEmpty;
 
           await Navigator.push(
             context,
@@ -1415,7 +1423,6 @@ class _CategoryTileState extends State<_CategoryTile> {
               ),
             ),
           );
-          // category/products se wapas aane par home ka cart count refresh
           if (widget.onReturn != null) await widget.onReturn!();
         },
         child: AnimatedScale(
@@ -1431,11 +1438,9 @@ class _CategoryTileState extends State<_CategoryTile> {
                 color: _pressed ? Colors.grey : Colors.grey.withOpacity(.25),
                 width: _pressed ? 1.8 : 1.2,
               ),
-
             ),
             child: Column(
               children: [
-                // image
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(0.0),
@@ -1463,7 +1468,6 @@ class _CategoryTileState extends State<_CategoryTile> {
                     ),
                   ),
                 ),
-                // const SizedBox(height: 7),
                 Text(
                   widget.category['category_name'].toString(),
                   textAlign: TextAlign.center,

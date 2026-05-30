@@ -19,7 +19,7 @@ Color kButtonColor = Color(0xFF06087A);
 
 
 
-Color kMainColor = Color(0xff01702e);
+Color kMainColor = Color(0xFFFFFFFF);
 Color kDisabledColor = Color(0xff616161);
 Color kLightTextColor = Colors.grey;
 Color kCardBackgroundColor = Color(0xfff8f9fd);

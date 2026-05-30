@@ -8,19 +8,19 @@ import 'colors.dart';
 final ThemeData appTheme = ThemeData(
   //fontFamily: 'OpenSans',
   scaffoldBackgroundColor: Colors.white,
-  primaryColor: kMainColor,
+  primaryColor: kButtonColor,
   dividerColor: Color(0x1f000000),
   disabledColor: kDisabledColor,
-  bottomAppBarTheme: BottomAppBarTheme(color: kMainColor),
+  bottomAppBarTheme: BottomAppBarTheme(color: kButtonColor),
   buttonTheme: ButtonThemeData(
     textTheme: ButtonTextTheme.normal,
     height: 33,
     padding: EdgeInsets.only(top: 0, bottom: 0, left: 16, right: 16),
     shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(30.0)),
-        side: BorderSide(color: kMainColor)),
+        side: BorderSide(color: kButtonColor)),
     alignedDropdown: false,
-    buttonColor: kMainColor,
+    buttonColor: kButtonColor,
     disabledColor: kDisabledColor,
   ),
   appBarTheme: AppBarTheme(
@@ -88,7 +88,7 @@ final ThemeData appTheme = ThemeData(
       fontSize: 15.0,
     ),
   ),
-  tabBarTheme: TabBarThemeData(indicatorColor: kMainColor),
+  tabBarTheme: TabBarThemeData(indicatorColor: kButtonColor),
 );
 
 //text style of continue bottom bar
@@ -120,7 +120,7 @@ final TextStyle listTitleTextStyle = TextStyle(
   fontFamily: 'OpenSans',
   fontSize: 16.7,
   fontWeight: FontWeight.bold,
-  color: kMainColor,
+  color: kButtonColor,
 );
 
 TextStyle appbarHeadingStyle = TextStyle(
@@ -154,7 +154,7 @@ TextStyle greyHeadingStyle = TextStyle(
 
 TextStyle moreStyle = TextStyle(
   fontSize: 14.0,
-  color: kMainColor,
+  color: kButtonColor,
   fontFamily: 'OpenSans',
   fontWeight: FontWeight.w500,
 );
@@ -180,7 +180,7 @@ TextStyle headingStyle = TextStyle(
 
 TextStyle priceStyle = TextStyle(
   fontSize: 18.0,
-  color: kMainColor,
+  color: kButtonColor,
   fontFamily: 'OpenSans',
   fontWeight: FontWeight.bold,
 );

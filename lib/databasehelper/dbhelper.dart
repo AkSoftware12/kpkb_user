@@ -6,7 +6,7 @@ import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
   static final _databaseName = "jhatfattable.db";
-  static final _databaseVersion = 2;
+  static final _databaseVersion = 3;
 
   static final table = 'producttable';
   static final pharmatable = 'pharmaproduct';
@@ -26,6 +26,8 @@ class DatabaseHelper {
   static final varientId = 'varient_id';
   static final productImage = 'product_img';
   static final gst = 'gst';
+  static final size = 'size';
+  static final color = 'color';
   static final is_id = 'is_id';
   static final is_pres= 'is_pres';
   static final isBasket= 'isBasket';
@@ -84,14 +86,20 @@ class DatabaseHelper {
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
 
     if (oldVersion < 2) {
-
-      // GST column add
       await db.execute(
-          "ALTER TABLE $table ADD COLUMN $gst TEXT DEFAULT ''"
+          "ALTER TABLE $table ADD COLUMN $gst TEXT"
       );
-
     }
 
+    if (oldVersion < 3) {
+      await db.execute(
+          "ALTER TABLE $table ADD COLUMN $size TEXT"
+      );
+
+      await db.execute(
+          "ALTER TABLE $table ADD COLUMN $color TEXT"
+      );
+    }
   }
 
   Future _onCreate(Database db, int version) async {
@@ -110,6 +118,8 @@ class DatabaseHelper {
             $varientId TEXT NOT NULL,
             $productImage TEXT NOT NULL,
             $gst TEXT DEFAULT '',
+            $size TEXT,
+            $color TEXT,
             $isBasket INTEGER NOT NULL,
             $addedBasket INTEGER NOT NULL,
             $is_id INTEGER NOT NULL,
@@ -311,6 +321,8 @@ class DatabaseHelper {
     print("DATA TO BE ADD$row");
 
     row[gst] = row[gst] ?? '';
+    row[size] = row[size];
+    row[color] = row[color];
 
     Database db = await instance.database;
     return await db.insert(table, row);

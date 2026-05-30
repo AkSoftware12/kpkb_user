@@ -390,7 +390,7 @@ class PaymentPageState extends State<PaymentPage> {
 
                 if (payableAmount > 0) const SizedBox(height: 12),
 
-                // if (payableAmount > 0) _onlinePaymentCard(),
+                if (payableAmount > 0) _onlinePaymentCard(),
 
                 // if (canPayByWallet) _walletPayButton(),
 
@@ -535,6 +535,7 @@ class PaymentPageState extends State<PaymentPage> {
     return InkWell(
       borderRadius: BorderRadius.circular(22),
       onTap: showDialogBox ? null : () => placedOrder("success", "COD"),
+      // onTap: showDialogBox ? null : () => placedOrder("success", "RazorPay"),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: _cardDecoration(),
@@ -603,10 +604,13 @@ class PaymentPageState extends State<PaymentPage> {
           return;
         }
 
-        openCheckout(
-          payment.payment_key.toString(),
-          payableAmount * 100,
-        );
+        // openCheckout(
+        //   payment.payment_key.toString(),
+        //   payableAmount * 100,
+        // );
+
+        // placedOrder("success", "RazorPay");
+        placedOrder("success", "Online");
       },
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -657,68 +661,7 @@ class PaymentPageState extends State<PaymentPage> {
     );
   }
 
-  Widget _walletPayButton() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 16),
-      child: SizedBox(
-        width: double.infinity,
-        height: 52,
-        child: ElevatedButton.icon(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: kMainColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-          onPressed: showDialogBox ? null : () => placedOrder('success', 'wallet'),
-          icon: const Icon(Icons.check_circle, color: Colors.white),
-          label: const Text(
-            'Place Order',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-              fontSize: 15,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
-  Widget _footerMessage() {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(child: Divider(color: Colors.grey.shade300)),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Text(
-                "कल फिर आना!",
-                style: GoogleFonts.baloo2(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-            ),
-            Expanded(child: Divider(color: Colors.grey.shade300)),
-          ],
-        ),
-        if (message.trim().isNotEmpty) ...[
-          const SizedBox(height: 12),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade700,
-            ),
-          ),
-        ],
-      ],
-    );
-  }
 
   Widget _paymentDialog() {
     return Positioned.fill(
