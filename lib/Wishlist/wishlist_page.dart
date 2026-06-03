@@ -481,27 +481,6 @@ class _WishListProductsScreenState extends State<WishListProductsScreen> {
     );
   }
 
-  Future<void> openCart() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? skip = prefs.getString('skip');
-
-    if (!mounted) return;
-
-    if (skip != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => oneViewCart(),
-        ),
-      );
-    } else {
-      Navigator.pushNamed(context, PageRoutes.viewCart).then((value) {
-        if (!mounted) return;
-        setList(productVarientList);
-        getCartCount();
-      });
-    }
-  }
 
   // ============================================================
   // CARD DESIGN — full-width horizontal style (same as screenshot)
@@ -757,32 +736,33 @@ class _WishListProductsScreenState extends State<WishListProductsScreen> {
                           ),
                         ),
 
-                        SizedBox(width: 6.w),
 
-                        /// GST BADGE
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 3.w,
-                            vertical: 0.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.red.shade50,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: Colors.red.shade200,
-                            ),
-                          ),
-                          child: Text(
-                            'GST Inc. ${variant.gst}%',
-                            style: GoogleFonts.cabin(
-                              textStyle: TextStyle(
-                                color: Colors.red,
-                                fontSize: 9.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
+                        // SizedBox(width: 6.w),
+                        //
+                        // /// GST BADGE
+                        // Container(
+                        //   padding: EdgeInsets.symmetric(
+                        //     horizontal: 3.w,
+                        //     vertical: 0.h,
+                        //   ),
+                        //   decoration: BoxDecoration(
+                        //     color: Colors.red.shade50,
+                        //     borderRadius: BorderRadius.circular(20),
+                        //     border: Border.all(
+                        //       color: Colors.red.shade200,
+                        //     ),
+                        //   ),
+                        //   child: Text(
+                        //     'GST Inc. ${variant.gst}%',
+                        //     style: GoogleFonts.cabin(
+                        //       textStyle: TextStyle(
+                        //         color: Colors.red,
+                        //         fontSize: 9.sp,
+                        //         fontWeight: FontWeight.bold,
+                        //       ),
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
 
@@ -915,7 +895,16 @@ class _WishListProductsScreenState extends State<WishListProductsScreen> {
         child: SafeArea(
           top: false,
           child: GestureDetector(
-            onTap: openCart,
+            onTap: (){
+              Navigator.of(context, rootNavigator: true)
+                  .pushNamed(PageRoutes.viewCart)
+                  .then((value) {
+                if (!context.mounted) return;
+
+                setList(productVarientList);
+                getCartCount();
+              });
+            },
             child: Container(
               height: 50.sp,
               width: double.infinity,
@@ -1121,7 +1110,16 @@ class _WishListProductsScreenState extends State<WishListProductsScreen> {
             padding: const EdgeInsets.only(right: 10),
             child: InkWell(
               borderRadius: BorderRadius.circular(50),
-              onTap: openCart,
+              onTap: (){
+                Navigator.of(context, rootNavigator: true)
+                    .pushNamed(PageRoutes.viewCart)
+                    .then((value) {
+                  if (!context.mounted) return;
+
+                  setList(productVarientList);
+                  getCartCount();
+                });
+              },
               child: Container(
                 margin: const EdgeInsets.symmetric(vertical: 8),
                 padding: const EdgeInsets.all(10),

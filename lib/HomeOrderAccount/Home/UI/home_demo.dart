@@ -498,16 +498,22 @@ class _HomeState extends State<HomePageDemo>
   // ─────────────────────────────────────────────────────
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
+    // SafeArea status-bar inset ke liye top padding add karo, warna
+    // notch wale devices par content overflow karega.
+    final double topInset = MediaQuery.of(context).padding.top;
+
     return PreferredSize(
-      preferredSize:  Size.fromHeight(110.sp),
+      // 116 = top row + search bar ke liye safe height (logical px, NOT .sp).
+      preferredSize: Size.fromHeight(116 + topInset),
       child: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: const BorderRadius.vertical(bottom: Radius.circular(22)),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(22)),
         ),
         child: SafeArea(
           bottom: false,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               // ── top row ──
               Padding(
@@ -518,24 +524,29 @@ class _HomeState extends State<HomePageDemo>
                     const SizedBox(width: 6),
                     Expanded(
                       child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
                         onTap: () async {
                           final result = await Navigator.push(
                             context,
                             MaterialPageRoute(builder: (_) => LocationPage(lat, lng)),
                           );
-                          if (result != null && result is BackLatLng) {
+                          if (result is BackLatLng) {
                             lat = result.lat;
                             lng = result.lng;
                             final prefs = await SharedPreferences.getInstance();
                             await prefs.setString('lat', lat.toString());
                             await prefs.setString('lng', lng.toString());
                             cityName = prefs.getString('city_name') ?? 'Current Location';
-                            if (mounted) setState(() {});
+
+                            // async gap ke baad widget alive hai ya nahi, confirm karo.
+                            if (!mounted) return;
+                            setState(() {});
                             await _fetchCategories(refreshOnly: true);
                           }
                         },
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               'delivery_to'.tr(),
@@ -552,7 +563,7 @@ class _HomeState extends State<HomePageDemo>
                                   child: Text(
                                     cityName?.trim().isNotEmpty == true
                                         ? cityName!
-                                        : 'Tap to select location',
+                                        : 'tap_to_select_location'.tr(),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.nunito(
@@ -576,14 +587,15 @@ class _HomeState extends State<HomePageDemo>
                     ),
                     // Account button
                     GestureDetector(
-                      onTap: () async {
-                        Navigator.pushNamed(context, PageRoutes.accountPage);
+                      onTap: () {
+                        Navigator.of(context, rootNavigator: true)
+                            .pushNamed(PageRoutes.accountPage);
                       },
                       child: Container(
                         width: 38,
                         height: 38,
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(.18),
+                          color: Colors.black.withOpacity(.06),
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.black.withOpacity(.30)),
                         ),
@@ -602,11 +614,11 @@ class _HomeState extends State<HomePageDemo>
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
                 child: Container(
-                  height: 40.sp,
+                  height: 44, // fixed logical px (pehle 40.sp tha → scaling se overflow)
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(.94),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(width: 1,color: Colors.grey),
+                    border: Border.all(width: 1, color: Colors.grey),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(.07),
@@ -621,12 +633,14 @@ class _HomeState extends State<HomePageDemo>
                     textInputAction: TextInputAction.search,
                     style: GoogleFonts.outfit(fontSize: 14, color: Colors.black87),
                     decoration: InputDecoration(
-                      hintText: 'Search product',
+                      isDense: true,
+                      hintText: 'search_product'.tr(),
                       hintStyle: GoogleFonts.outfit(
                         fontSize: 14,
                         color: Colors.grey.shade400,
                       ),
-                      prefixIcon: const Icon(Icons.search_rounded, color: Colors.grey, size: 20),
+                      prefixIcon:
+                      const Icon(Icons.search_rounded, color: Colors.grey, size: 20),
                       suffixIcon: searchText.isNotEmpty
                           ? IconButton(
                         icon: const Icon(Icons.close_rounded, size: 18),
@@ -638,7 +652,7 @@ class _HomeState extends State<HomePageDemo>
                       )
                           : null,
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 13),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
                 ),
@@ -649,7 +663,6 @@ class _HomeState extends State<HomePageDemo>
       ),
     );
   }
-
   // ─────────────────────────────────────────────────────
   //  BODY
   // ─────────────────────────────────────────────────────
@@ -876,7 +889,7 @@ class _HomeState extends State<HomePageDemo>
     return Positioned(
       left: 12,
       right: 12,
-      bottom: 60.sp,
+      bottom:10.sp,
       child: Dismissible(
         key: const ValueKey('home-cart-bar'),
         direction: DismissDirection.endToStart,
@@ -1012,15 +1025,16 @@ class _HomeState extends State<HomePageDemo>
         ),
         child: GestureDetector(
           onTap: () async {
-            final prefs = await SharedPreferences.getInstance();
-            final skip = prefs.getString('skip');
-            if (skip != null) {
-              Navigator.pushNamed(context, PageRoutes.viewCart);
-            } else {
-              Navigator.pushNamed(context, PageRoutes.viewCart)
-                  .then((_) => _getCartCountFast());
-            }
+
+            Navigator.of(context, rootNavigator: true)
+                .pushNamed(PageRoutes.viewCart)
+                .then((value) {
+              if (!context.mounted) return;
+
+              _getCartCountFast();
+            });
           },
+
           child: Container(
             height: 50.sp,
             padding: const EdgeInsets.symmetric(horizontal: 16),

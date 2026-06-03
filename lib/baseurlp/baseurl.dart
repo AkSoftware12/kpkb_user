@@ -5,8 +5,8 @@
 // var imageBaseUrl = "https://kpkb.sftunes.in/";
 
 //  LOCAL URL
-// var baseUrl = "http://192.168.1.9/kpkb/api/";
-// var imageBaseUrl = "http://192.168.1.9/kpkb/";
+// var baseUrl = "http://192.168.1.15/kpkb/api/";
+// var imageBaseUrl = "http://192.168.1.15/kpkb/";
 
 // var baseUrl = "http://10.210.212.163/kpkb/api/";
 // var imageBaseUrl = "http://10.210.212.163/kpkb/";

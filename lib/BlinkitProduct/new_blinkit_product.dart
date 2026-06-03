@@ -532,11 +532,19 @@ class _ProductsScreenState extends State<ProductsScreen>
                 color: kButtonColor,
               ),
               onPressed: () async {
-                Navigator.pushNamed(context, PageRoutes.viewCart).then((value) {
-                  if (!mounted) return;
+                Navigator.of(context, rootNavigator: true)
+                    .pushNamed(PageRoutes.viewCart)
+                    .then((value) {
+                  if (!context.mounted) return;
+
                   refreshQuantities();
                   getCartCount();
                 });
+                // Navigator.pushNamed(context, PageRoutes.viewCart).then((value) {
+                //   if (!mounted) return;
+                //   refreshQuantities();
+                //   getCartCount();
+                // });
               },
             ),
           ),
@@ -1434,9 +1442,12 @@ class _ProductsScreenState extends State<ProductsScreen>
         child: SafeArea(
           top: false,
           child: GestureDetector(
-            onTap: () async {
-              Navigator.pushNamed(context, PageRoutes.viewCart).then((value) {
+            onTap: () {
+              Navigator.of(context, rootNavigator: true)
+                  .pushNamed(PageRoutes.viewCart)
+                  .then((value) {
                 if (!context.mounted) return;
+
                 refreshQuantities();
                 getCartCount();
               });

@@ -432,7 +432,7 @@ class PhoneNumberState extends State<PhoneNumber> {
             print('Response Body: - ${response.body}');
             var jsonData = jsonDecode(response.body);
             SharedPreferences prefs = await SharedPreferences.getInstance();
-            prefs.setString("user_phone", '${phoneNumber}');
+            prefs.setString("user_phone", phoneNumber);
             prefs.setInt("number_limit", numberLimit);
             if (jsonData['status'] == 1) {
               setState(() {

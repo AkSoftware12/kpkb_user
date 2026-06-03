@@ -16,6 +16,7 @@ import 'package:otpless_flutter/otpless_flutter.dart';
 import 'package:pin_code_text_field/pin_code_text_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../DriverApp/Account/UI/account_page.dart';
 import '../../../HomeOrderAccount/home_order_account.dart';
 import '../../../Routes/routes.dart';
 import '../../../Themes/colors.dart';
@@ -371,7 +372,7 @@ class _OtpVerifyState extends State<OtpVerify> {
       final response = await http.post(
         myUri,
         body: {
-          'phone': prefs.getString('user_phone') ?? '',
+          'user_phone': prefs.getString('user_phone') ?? '',
           'otp': _controller.text.trim(),
           'device_id': token ?? '',
         },
@@ -385,36 +386,68 @@ class _OtpVerifyState extends State<OtpVerify> {
         if (jsonData['status'] == 1) {
           final data = jsonData['data'] ?? {};
 
-          await prefs.setInt(
-            "user_id",
-            int.tryParse(data['user_id'].toString()) ?? 0,
-          );
+          final int role = int.tryParse(data['role'].toString()) ?? 0;
 
-          await prefs.setString("card_no", data['card_no']?.toString() ?? '');
-          await prefs.setString("rank_id", data['rank_id']?.toString() ?? '');
-          await prefs.setString(
-            "regimental_no",
-            data['regimental_no']?.toString() ?? '',
-          );
-          await prefs.setString("card", data['card']?.toString() ?? '');
-
-          await prefs.setString("user_name", data['user_name']?.toString() ?? '');
-          await prefs.setString("user_email", data['user_email']?.toString() ?? '');
-          await prefs.setString("user_image", data['user_image']?.toString() ?? '');
-          await prefs.setString("user_phone", data['user_phone']?.toString() ?? '');
-
+          await prefs.setInt("role", role);
           await prefs.setBool("phoneverifed", true);
           await prefs.setBool("islogin", true);
 
-          /// Response me Currency capital C hai
-          if (jsonData['Currency'] != null) {
-            CurrencyData currencyData = CurrencyData.fromJson(
-              jsonData['Currency'],
+          if (role == 0) {
+            // USER DATA SAVE
+            await prefs.setInt(
+              "user_id",
+              int.tryParse(data['user_id'].toString()) ?? 0,
+            );
+
+            await prefs.setString("card_no", data['card_no']?.toString() ?? '');
+            await prefs.setString("rank_id", data['rank_id']?.toString() ?? '');
+            await prefs.setString(
+              "regimental_no",
+              data['regimental_no']?.toString() ?? '',
+            );
+            await prefs.setString("card", data['card']?.toString() ?? '');
+
+            await prefs.setString("user_name", data['user_name']?.toString() ?? '');
+            await prefs.setString("user_email", data['user_email']?.toString() ?? '');
+            await prefs.setString("user_image", data['user_image']?.toString() ?? '');
+            await prefs.setString("user_phone", data['user_phone']?.toString() ?? '');
+
+            if (jsonData['Currency'] != null) {
+              CurrencyData currencyData = CurrencyData.fromJson(jsonData['Currency']);
+
+              await prefs.setString(
+                "curency",
+                currencyData.currency_sign?.toString() ?? '₹',
+              );
+            }
+          } else if (role == 1) {
+            // DRIVER DATA SAVE
+            await prefs.setInt(
+              "delivery_boy_id",
+              int.tryParse(data['delivery_boy_id'].toString()) ?? 0,
             );
 
             await prefs.setString(
-              "curency",
-              currencyData.currency_sign?.toString() ?? '₹',
+              "delivery_boy_name",
+              data['delivery_boy_name']?.toString() ?? '',
+            );
+            await prefs.setString(
+              "delivery_boy_image",
+              data['delivery_boy_image']?.toString() ?? '',
+            );
+            await prefs.setString(
+              "delivery_boy_phone",
+              data['delivery_boy_phone']?.toString() ?? '',
+            );
+            await prefs.setString(
+              "delivery_boy_status",
+              data['delivery_boy_status']?.toString() ?? '',
+            );
+            await prefs.setString("lat", data['lat']?.toString() ?? '0');
+            await prefs.setString("lng", data['lng']?.toString() ?? '0');
+            await prefs.setString(
+              "cityadmin_id",
+              data['cityadmin_id']?.toString() ?? '',
             );
           }
 
@@ -422,10 +455,17 @@ class _OtpVerifyState extends State<OtpVerify> {
 
           setState(() => showDialogBox = false);
 
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => HomeStateless()),
-                (Route<dynamic> route) => false,
-          );
+          if (role == 0) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => HomeStateless()),
+                  (Route<dynamic> route) => false,
+            );
+          } else if (role == 1) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => AccountPage()),
+                  (Route<dynamic> route) => false,
+            );
+          }
         } else {
           Fluttertoast.showToast(
             msg: jsonData['message']?.toString() ?? "Invalid OTP",
@@ -455,8 +495,7 @@ class _OtpVerifyState extends State<OtpVerify> {
         setState(() => showDialogBox = false);
       }
     }
-  }
-  void showAlertDialog(BuildContext context, String message) {
+  }  void showAlertDialog(BuildContext context, String message) {
     // set up the AlertDialog
     final CupertinoAlertDialog alert = CupertinoAlertDialog(
       title: const Text('Error'),

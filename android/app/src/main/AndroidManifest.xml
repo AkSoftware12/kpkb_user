@@ -1,34 +1,113 @@
+<!--<manifest xmlns:android="http://schemas.android.com/apk/res/android">-->
+
+<!--    <uses-feature-->
+<!--        android:name="android.hardware.camera"-->
+<!--        android:required="false" />-->
+
+<!--&lt;!&ndash;    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>&ndash;&gt;-->
+<!--&lt;!&ndash;    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>&ndash;&gt;-->
+<!--&lt;!&ndash;    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>&ndash;&gt;-->
+
+<!--&lt;!&ndash;    &lt;!&ndash; For Android 12 and lower (storage access) &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>&ndash;&gt;-->
+
+
+<!--    <uses-permission android:name="android.permission.CAMERA" />-->
+<!--    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>-->
+<!--    <uses-permission android:name="android.permission.RECORD_AUDIO" /> &lt;!&ndash; added these permissions &ndash;&gt;-->
+<!--    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />-->
+<!--    <uses-permission android:name="android.permission.WAKE_LOCK" />-->
+<!--    <uses-permission android:name="android.permission.INTERNET" />-->
+<!--    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />-->
+<!--    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />-->
+<!--    <uses-permission android:name="android.permission.VIBRATE" />-->
+<!--    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />-->
+<!--    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />-->
+
+<!--    <application-->
+<!--        android:name="${applicationName}"-->
+<!--        android:icon="@mipmap/launcher_icon"-->
+<!--        android:enableOnBackInvokedCallback="true"-->
+<!--        android:label="ITBPF KPKB">-->
+<!--        <activity-->
+<!--            android:name=".MainActivity"-->
+<!--            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"-->
+<!--            android:exported="true"-->
+<!--            android:hardwareAccelerated="true"-->
+<!--            android:launchMode="singleTop"-->
+<!--            android:taskAffinity=""-->
+<!--            android:theme="@style/LaunchTheme"-->
+<!--            android:windowSoftInputMode="adjustResize"> &lt;!&ndash; Specifies an Android theme to apply to this Activity as soon as the Android process has started. This theme is visible to the user while the Flutter UI initializes. After that, this theme continues to determine the Window background behind the Flutter UI. &ndash;&gt;-->
+<!--            <meta-data-->
+<!--                android:name="io.flutter.embedding.android.NormalTheme"-->
+<!--                android:resource="@style/NormalTheme" />-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
+<!--        </activity> &lt;!&ndash; Don't delete the meta-data below. This is used by the Flutter tool to generate GeneratedPluginRegistrant.java &ndash;&gt;-->
+<!--        <meta-data-->
+<!--            android:name="flutterEmbedding"-->
+<!--            android:value="2" />-->
+<!--        <meta-data-->
+<!--            android:name="com.google.android.geo.API_KEY"-->
+<!--            android:value="@string/map_key" />-->
+<!--        <meta-data-->
+<!--            android:name="com.google.android.gms.version"-->
+<!--            android:value="@integer/google_play_services_version" />-->
+<!--    </application> &lt;!&ndash; Required to query activities that can process text, see: https://developer.android.com/training/package-visibility and https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT. In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. &ndash;&gt;-->
+<!--    <queries>-->
+<!--        <intent>-->
+<!--            <action android:name="android.intent.action.PROCESS_TEXT" />-->
+<!--            <data android:mimeType="text/plain" />-->
+<!--        </intent>-->
+<!--    </queries>-->
+<!--</manifest>-->
+
+<!--  user and driver mix Start-->
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
 
-<!--    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>-->
-<!--    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>-->
-<!--    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>-->
-
-<!--    &lt;!&ndash; For Android 12 and lower (storage access) &ndash;&gt;-->
-<!--    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>-->
-
-
+    <!-- Camera / Audio -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-    <uses-permission android:name="android.permission.RECORD_AUDIO" /> <!-- added these permissions -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Internet -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <!-- Location -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+<!--    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />-->
+
+    <!-- Phone Call -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+
+    <!-- Notification / Alarm / Background -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+<!--    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />-->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+<!--    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />-->
+<!--    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />-->
+
+    <!-- Foreground Service -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon"
-        android:enableOnBackInvokedCallback="true"
-        android:label="ITBPF KPKB">
+        android:label="ITBPF KPKB"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:hardwareAccelerated="true"
+        android:enableOnBackInvokedCallback="true">
+
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
@@ -37,29 +116,59 @@
             android:launchMode="singleTop"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
-            android:windowSoftInputMode="adjustResize"> <!-- Specifies an Android theme to apply to this Activity as soon as the Android process has started. This theme is visible to the user while the Flutter UI initializes. After that, this theme continues to determine the Window background behind the Flutter UI. -->
+            android:windowSoftInputMode="adjustResize">
+
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- Don't delete the meta-data below. This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+
+            <intent-filter>
+                <action android:name="FLUTTER_NOTIFICATION_CLICK" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+        </activity>
+
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/map_key" />
+
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
-    </application> <!-- Required to query activities that can process text, see: https://developer.android.com/training/package-visibility and https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT. In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="@string/default_notification_channel_id" />
+
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT" />
             <data android:mimeType="text/plain" />
         </intent>
     </queries>
+
 </manifest>

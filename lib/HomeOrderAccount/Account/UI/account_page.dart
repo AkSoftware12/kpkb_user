@@ -506,7 +506,13 @@ class _AccountState extends State<Account> {
                       onPressed: isImageUpdating
                           ? null
                           : () async {
-                        await _updateProfileImage(sheetContext);
+                        final success = await _updateProfileImage(sheetContext);
+
+                        if (!context.mounted) return;
+
+                        if (success) {
+                          // yahan extra refresh/navigation chahiye to kar sakte ho
+                        }
                       },
                       child: isImageUpdating
                           ? SizedBox(
@@ -557,16 +563,18 @@ class _AccountState extends State<Account> {
   }
 
 
-  Future<void> _updateProfileImage(BuildContext sheetContext) async {
+  Future<bool> _updateProfileImage(BuildContext sheetContext) async {
     if (selectedProfileImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please select image")),
       );
-      return;
+      return false;
     }
 
     try {
-      setState(() => isImageUpdating = true);
+      if (mounted) {
+        setState(() => isImageUpdating = true);
+      }
 
       final prefs = await SharedPreferences.getInstance();
       final userId = prefs.getInt("user_id") ?? 0;
@@ -580,7 +588,7 @@ class _AccountState extends State<Account> {
 
       request.files.add(
         await http.MultipartFile.fromPath(
-          "photo", // ✅ API key
+          "photo",
           selectedProfileImage!.path,
         ),
       );
@@ -595,27 +603,39 @@ class _AccountState extends State<Account> {
 
         await prefs.setString("user_image", newImage);
 
-        Navigator.pop(sheetContext);
+        if (Navigator.canPop(sheetContext)) {
+          Navigator.pop(sheetContext);
+        }
+
+        if (!mounted) return true;
+
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(data["message"] ?? "Image updated")),
         );
 
-        // await getUserProfile(); // ✅ account screen refresh
+        return true;
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data["message"] ?? "Update failed")),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(data["message"] ?? "Update failed")),
+          );
+        }
+        return false;
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+      return false;
     } finally {
-      setState(() => isImageUpdating = false);
+      if (mounted) {
+        setState(() => isImageUpdating = false);
+      }
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
@@ -653,7 +673,12 @@ class _AccountState extends State<Account> {
             title: "notification".tr(),
             subtitle: "view_latest_offers".tr(),
             onTap: () {
-              Navigator.pushNamed(context, PageRoutes.offers);
+              Navigator.of(context, rootNavigator: true)
+                  .pushNamed(PageRoutes.offers)
+                  .then((value) {
+                if (!context.mounted) return;
+
+              });
             },
           ),
 
@@ -690,7 +715,12 @@ class _AccountState extends State<Account> {
             title: "terms_conditions".tr(),
             subtitle: "read_policies".tr(),
             onTap: () {
-              Navigator.pushNamed(context, PageRoutes.tncPage);
+              Navigator.of(context, rootNavigator: true)
+                  .pushNamed(PageRoutes.tncPage)
+                  .then((value) {
+                if (!context.mounted) return;
+
+              });
             },
           ),
           _AccountTile(
@@ -698,7 +728,7 @@ class _AccountState extends State<Account> {
             title: "gst".tr(),
             subtitle: "GST rules aur tax information",
             onTap: () async {
-              const url = 'https://yourdomain.com/gst-policy.pdf';
+              const url = 'https://kpkbdehradun.in/uploads/policies/admin-policy.pdf';
 
               if (await canLaunchUrl(Uri.parse(url))) {
               await launchUrl(
@@ -712,11 +742,16 @@ class _AccountState extends State<Account> {
             title: "support".tr(),
             subtitle: "need_help_support".tr(),
             onTap: () {
-              Navigator.pushNamed(
-                context,
+              Navigator.of(context, rootNavigator: true)
+                  .pushNamed(
                 PageRoutes.supportPage,
                 arguments: phoneNumber,
-              );
+              )
+                  .then((value) {
+                if (!context.mounted) return;
+
+                // Yahan return ke baad ka code likh sakte ho
+              });
             },
           ),
 
@@ -725,18 +760,28 @@ class _AccountState extends State<Account> {
             title: "about_us".tr(),
             subtitle: "know_more_about_us".tr(),
             onTap: () {
-              Navigator.pushNamed(context, PageRoutes.aboutUsPage);
+              Navigator.of(context, rootNavigator: true)
+                  .pushNamed(PageRoutes.aboutUsPage)
+                  .then((value) {
+                if (!context.mounted) return;
+
+              });
             },
           ),
 
-          _AccountTile(
-            icon: Icons.settings_rounded,
-            title: "settings".tr(),
-            subtitle: "app_preferences".tr(),
-            onTap: () {
-              Navigator.pushNamed(context, PageRoutes.settings);
-            },
-          ),
+          // _AccountTile(
+          //   icon: Icons.settings_rounded,
+          //   title: "settings".tr(),
+          //   subtitle: "app_preferences".tr(),
+          //   onTap: () {
+          //     Navigator.of(context, rootNavigator: true)
+          //         .pushNamed(PageRoutes.settings)
+          //         .then((value) {
+          //       if (!context.mounted) return;
+          //
+          //     });
+          //   },
+          // ),
 
           _AccountTile(
             icon: Icons.logout_rounded,

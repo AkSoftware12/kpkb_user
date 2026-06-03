@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../DriverApp/Account/UI/account_page.dart';
 import '../HomeOrderAccount/home_order_account.dart';
 import '../Themes/colors.dart';
 import '../Utils/HexColorCode/HexColor.dart';
@@ -33,7 +34,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _startAppFast() async {
     final prefs = await SharedPreferences.getInstance();
+
     final bool isLogin = prefs.getBool('islogin') ?? false;
+    final int role = prefs.getInt('role') ?? 0;
 
     // Splash ke andar location background me set hogi
     await _setFastLocation();
@@ -43,16 +46,23 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted || _navigated) return;
     _navigated = true;
 
+    Widget nextScreen;
+
+    if (isLogin) {
+      if (role == 1) {
+        nextScreen = AccountPage();
+      } else {
+        nextScreen = HomeStateless();
+      }
+    } else {
+      nextScreen = GoMarket();
+    }
+
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (_) => isLogin
-            ? HomeStateless()
-            : GoMarket(),
-      ),
+      MaterialPageRoute(builder: (_) => nextScreen),
     );
   }
-
   Future<void> _setFastLocation() async {
     try {
       final prefs = await SharedPreferences.getInstance();

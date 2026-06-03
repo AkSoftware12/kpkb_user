@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
 import 'package:new_version_plus/new_version_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -58,12 +59,12 @@ class _HomeOrderAccountState extends State<HomeOrderAccount> {
   String release = "";
   bool _upgradeDialogShown = false;
 
-
   @override
   void initState() {
     super.initState();
 
-    _currentIndex = widget.currentIndex.clamp(0, 2);
+    // 4 tabs (0..3)
+    _currentIndex = widget.currentIndex.clamp(0, 3);
     _value = widget.value;
 
     _children = [
@@ -76,11 +77,9 @@ class _HomeOrderAccountState extends State<HomeOrderAccount> {
         0,
         0,
         1,
-
       ),
       AccountPage(),
       oneViewCart(),
-
     ];
 
     _requestPermission();
@@ -90,7 +89,6 @@ class _HomeOrderAccountState extends State<HomeOrderAccount> {
     checkForVersion(context);
 
     final newVersion = NewVersionPlus(
-      // iOSId: '6760596159',
       iOSId: '',
       iOSAppStoreCountry: 'IN',
       androidId: 'com.kpkb.user',
@@ -100,7 +98,7 @@ class _HomeOrderAccountState extends State<HomeOrderAccount> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      advancedStatusCheck(newVersion); // ✅ now context is ready
+      advancedStatusCheck(newVersion);
     });
   }
 
@@ -190,10 +188,10 @@ class _HomeOrderAccountState extends State<HomeOrderAccount> {
       _upgradeDialogShown = true;
 
       showDialog(
-        context: context, // ✅ yahi best hai
+        context: context,
         barrierDismissible: false,
         builder: (dialogCtx) {
-          return PopScope( // ✅ WillPopScope new replacement (Flutter 3.13+)
+          return PopScope(
             canPop: false,
             onPopInvoked: (didPop) {
               SystemNavigator.pop();
@@ -215,6 +213,7 @@ class _HomeOrderAccountState extends State<HomeOrderAccount> {
       debugPrint("$st");
     }
   }
+
   Future<void> checkForVersion(BuildContext context) async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     currentVersion = packageInfo.version;
@@ -227,28 +226,38 @@ class _HomeOrderAccountState extends State<HomeOrderAccount> {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        extendBody: true,
+        extendBody: false,
         backgroundColor: Colors.white,
         body: KeyedSubtree(
           key: ValueKey(safeIndex),
           child: _children[safeIndex],
         ),
-        bottomNavigationBar: _buildBottomNav(),
+        bottomNavigationBar: _buildBottomNav(context),
       ),
     );
   }
 
-  Widget _buildBottomNav() {
-    return SafeArea(
-      top: false,
-      child: Container(
-        height: 60,
-        decoration: BoxDecoration(
-          color: Colors.white,
-        ),
+  Widget _buildBottomNav(BuildContext context) {
+    // device ka bottom inset (gesture bar / notch) — har device pe alag hota hai
+    final double bottomInset = MediaQuery.of(context).padding.bottom;
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 8,
+            offset: Offset(0, -2),
+          ),
+        ],
+      ),
+      // content height fixed 60 + device ka safe bottom padding
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: SizedBox(
+        height: 50.sp,
         child: Row(
           children: [
-
             _navItem(
               index: 0,
               icon: Icons.home_rounded,
@@ -259,7 +268,6 @@ class _HomeOrderAccountState extends State<HomeOrderAccount> {
               icon: Icons.favorite,
               label: 'wishlist'.tr(),
             ),
-
             _navItem(
               index: 2,
               icon: Icons.person_rounded,
@@ -293,10 +301,9 @@ class _HomeOrderAccountState extends State<HomeOrderAccount> {
           children: [
             Icon(
               icon,
-              size: selected ? 30 : 25,
+              size: selected ? 25.sp : 22.sp,
               color: selected ? kButtonColor : Colors.black,
             ),
-            // const SizedBox(height: 2),
             Flexible(
               child: Text(
                 label,
@@ -304,7 +311,7 @@ class _HomeOrderAccountState extends State<HomeOrderAccount> {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: selected ? kButtonColor : Colors.black,
-                  fontSize: 15,
+                  fontSize: 13.sp,
                   fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
                 ),
               ),

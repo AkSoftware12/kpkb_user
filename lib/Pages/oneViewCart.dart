@@ -102,16 +102,19 @@ class _oneViewCartState extends State<oneViewCart> {
     safeSetState(() => isCartFetch = false);
 
     // ✅ Address + delivery charges background me load honge
-    _loadAddressAndChargesInBackground();
+    // _loadAddressAndChargesInBackground();
+
+    getAddress();
+
   }
 
-  Future<void> _loadAddressAndChargesInBackground() async {
-    await getAddress();
-
-    if (addressDelivery != null && cartListI.isNotEmpty) {
-      await ordercharg();
-    }
-  }
+  // Future<void> _loadAddressAndChargesInBackground() async {
+  //   await getAddress();
+  //
+  //   if (addressDelivery != null && cartListI.isNotEmpty) {
+  //     await ordercharg();
+  //   }
+  // }
 
 
   Future<void> getOngoingOrders() async {
@@ -383,63 +386,63 @@ class _oneViewCartState extends State<oneViewCart> {
     });
   }
 
-  Future<void> ordercharg() async {
-    if (_isChargesLoading) return;
-
-    safeSetState(() => _isChargesLoading = true);
-
-    try {
-      final pref = await SharedPreferences.getInstance();
-      final userId = pref.getInt('user_id');
-
-      print('userID $userId');
-
-      if (userId == null || cartListI.isEmpty) return;
-
-      final orderArray = cartListI.map((item) {
-        return OrderArrayGrocery(
-          int.parse('${item.add_qnty}'),
-          int.parse('${item.varient_id}'),
-          int.parse('${item.addedBasket}'),
-        );
-      }).toList();
-
-      print('orderArray$orderArray');
-
-      final response = await http.post(
-        Uri.parse(ordercharges),
-        body: {
-          'user_id': userId.toString(),
-          'order_array': orderArray.toString(),
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final jsonData = jsonDecode(response.body);
-
-        safeSetState(() {
-          if (jsonData['status'].toString() == '1') {
-            storedeliveryCharge = _toDouble(jsonData['delivery_charges']);
-            gstCharge = _toDouble(jsonData['gst']);
-            Errormessage = '';
-          } else {
-            storedeliveryCharge = 0.0;
-            gstCharge = 0.0;
-            Errormessage =
-                jsonData['message']?.toString() ??
-                    jsonData['meesage']?.toString() ??
-                    'Delivery not available';
-          }
-        });
-      }
-    } catch (_) {
-      safeSetState(() {
-        Errormessage = 'Something went wrong';
-      });
-    } finally {
-      safeSetState(() => _isChargesLoading = false);
-    }
-  }
+  // Future<void> ordercharg() async {
+  //   if (_isChargesLoading) return;
+  //
+  //   safeSetState(() => _isChargesLoading = true);
+  //
+  //   try {
+  //     final pref = await SharedPreferences.getInstance();
+  //     final userId = pref.getInt('user_id');
+  //
+  //     print('userID $userId');
+  //
+  //     if (userId == null || cartListI.isEmpty) return;
+  //
+  //     final orderArray = cartListI.map((item) {
+  //       return OrderArrayGrocery(
+  //         int.parse('${item.add_qnty}'),
+  //         int.parse('${item.varient_id}'),
+  //         int.parse('${item.addedBasket}'),
+  //       );
+  //     }).toList();
+  //
+  //     print('orderArray$orderArray');
+  //
+  //     final response = await http.post(
+  //       Uri.parse(ordercharges),
+  //       body: {
+  //         'user_id': userId.toString(),
+  //         'order_array': orderArray.toString(),
+  //       },
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       final jsonData = jsonDecode(response.body);
+  //
+  //       safeSetState(() {
+  //         if (jsonData['status'].toString() == '1') {
+  //           storedeliveryCharge = _toDouble(jsonData['delivery_charges']);
+  //           gstCharge = _toDouble(jsonData['gst']);
+  //           Errormessage = '';
+  //         } else {
+  //           storedeliveryCharge = 0.0;
+  //           gstCharge = 0.0;
+  //           Errormessage =
+  //               jsonData['message']?.toString() ??
+  //                   jsonData['meesage']?.toString() ??
+  //                   'Delivery not available';
+  //         }
+  //       });
+  //     }
+  //   } catch (_) {
+  //     safeSetState(() {
+  //       Errormessage = 'Something went wrong';
+  //     });
+  //   } finally {
+  //     safeSetState(() => _isChargesLoading = false);
+  //   }
+  // }
 
   // ─────────────────────────────────────────────────────
   //  CLEAR CART  (ab confirmation dialog ke saath)
@@ -708,7 +711,7 @@ class _oneViewCartState extends State<oneViewCart> {
 
     await getCartItem();
     getCatC();
-    await ordercharg();
+    // await ordercharg();
     //
     // if (cartListI.isEmpty && mounted) {
     //   Navigator.pushAndRemoveUntil(
@@ -1333,9 +1336,10 @@ class _oneViewCartState extends State<oneViewCart> {
                                       ?  SizedBox(
                                     height: 20,
                                     width: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2,color: kMainColor,),
+                                    child: CircularProgressIndicator(strokeWidth: 2,color: kButtonColor,),
                                   )
-                                      : Text(
+                                      :
+                                  Text(
                                     "$currency ${payableAmount.toStringAsFixed(2)}",
                                     style: TextStyle(
                                       color: kButtonColor,
@@ -1726,12 +1730,12 @@ class _oneViewCartState extends State<oneViewCart> {
                     MaterialPageRoute(
                       builder: (_) => SavedAddressesPage("", onReturn: () async {
                         await getAddress();
-                        await ordercharg();
+                        // await ordercharg();
                       }),
                     ),
                   ).then((_) async {
                     await getAddress();
-                    await ordercharg();
+                    // await ordercharg();
                   });
                 },
                 child: Text(
@@ -1777,13 +1781,18 @@ class _oneViewCartState extends State<oneViewCart> {
         height: 45.sp,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: isWeightExceeded ? Colors.grey : kButtonColor,
+            backgroundColor:
+            (isWeightExceeded || _isChargesLoading)
+                ? Colors.grey
+                : kButtonColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
           ),
-          onPressed: (_isPaying || isWeightExceeded) ? null : _onPayTap,
-          child: _isPaying
+          onPressed: (_isPaying || isWeightExceeded || _isChargesLoading)
+              ? null
+              : _onPayTap,
+          child: (_isPaying || _isChargesLoading)
               ? const SizedBox(
             height: 22,
             width: 22,
@@ -1806,7 +1815,6 @@ class _oneViewCartState extends State<oneViewCart> {
       ),
     );
   }
-
   void _showAddressDialog() {
     showDialog(
       context: context,
@@ -1902,12 +1910,12 @@ class _oneViewCartState extends State<oneViewCart> {
                               MaterialPageRoute(
                                 builder: (_) => SavedAddressesPage("", onReturn: () async {
                                   await getAddress();
-                                  await ordercharg();
+                                  // await ordercharg();
                                 }),
                               ),
                             ).then((_) async {
                               await getAddress();
-                              await ordercharg();
+                              // await ordercharg();
                             });
                           },
                           style: ElevatedButton.styleFrom(

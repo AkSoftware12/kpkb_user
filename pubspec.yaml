@@ -3,7 +3,7 @@ description: "A new Flutter project."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 
-version: 1.0.7+7
+version: 1.0.9+9
 
 
 
@@ -86,6 +86,21 @@ dependencies:
   easy_localization: ^3.0.8
   new_version_plus: ^0.1.1
 
+# driver app
+
+  path_provider: ^2.1.5
+  country_code_picker: ^3.3.0
+  group_button: ^5.3.4
+  flutter_local_notifications: ^19.3.0
+  animated_widgets: ^1.1.0
+  flutter_boom_menu_new: ^1.0.1
+  progress_dialog_null_safe: ^3.0.0
+  signature: ^6.3.0
+  android_intent_plus: ^5.3.0
+  flutter_ringtone_player: ^4.0.0+4
+  device_info_plus: ^11.5.0
+
+
 
 
 
@@ -99,6 +114,11 @@ dev_dependencies:
 
   flutter_lints: ^5.0.0
   change_app_package_name: ^1.1.0
+
+#  driver app
+  intl_translation: any
+  json_serializable: ^6.5.4
+  flutter_launcher_icons: any
 
 
 #plugin:
