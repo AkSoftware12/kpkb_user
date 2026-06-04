@@ -630,7 +630,7 @@ class _ProductsScreenState extends State<ProductsScreen>
 
                     height: 110.sp,
                     width: 110.sp,
-                    fit: BoxFit.cover,
+                    // fit: BoxFit.contain,
 
                     // FAST LOAD
                     memCacheHeight: 220,
