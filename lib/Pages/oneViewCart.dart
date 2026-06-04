@@ -887,9 +887,10 @@ class _oneViewCartState extends State<oneViewCart> {
           automaticallyImplyLeading: true,
           title: Text(
             "confirm_order".tr(),
-            style: const TextStyle(
+            style:  TextStyle(
               color: Colors.black,
               fontWeight: FontWeight.w800,
+              fontSize: 16.sp
             ),
           ),
           actions: [
@@ -1791,7 +1792,7 @@ class _oneViewCartState extends State<oneViewCart> {
           ),
           onPressed: (_isPaying || isWeightExceeded || _isChargesLoading)
               ? null
-              : _onPayTap,
+              : _onPayTapWrapper,
           child: (_isPaying || _isChargesLoading)
               ? const SizedBox(
             height: 22,
@@ -2034,7 +2035,13 @@ class _oneViewCartState extends State<oneViewCart> {
       },
     );
   }
-
+  void _onPayTapWrapper() {
+    if (payableAmount < 1000) {
+      _showMinOrderPopup();
+      return;
+    }
+    _onPayTap();
+  }
   Future<void> _onPayTap() async {
     safeSetState(() => _isPaying = true);
 
@@ -2167,18 +2174,7 @@ class _oneViewCartState extends State<oneViewCart> {
         );
         return;
       }
-      final prefs =
-      await SharedPreferences.getInstance();
 
-      if (prefs.getString('skip') != null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => GoMarket(),
-          ),
-        );
-        return;
-      }
 
       if (addressDelivery == null) {
         _showAddressDialog();
@@ -2193,7 +2189,6 @@ class _oneViewCartState extends State<oneViewCart> {
         return;
       }
 
-      await prefs.remove('service');
 
       await createCart(context);
 
@@ -2207,6 +2202,14 @@ class _oneViewCartState extends State<oneViewCart> {
 
       safeSetState(() => _isPaying = false);
     }
+  }
+
+  void _onContinueShopping() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => HomeOrderAccount(0, 1)),
+          (_) => false,
+    );
   }
   Widget _emptyCart() {
     return Center(
@@ -2260,6 +2263,168 @@ class _oneViewCartState extends State<oneViewCart> {
     );
   }
 
+  void _showMinOrderPopup() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        final screenWidth = MediaQuery.of(context).size.width;
+
+        return Dialog(
+          backgroundColor: Colors.white,
+          insetPadding: EdgeInsets.symmetric(
+            horizontal: screenWidth * 0.06,
+            vertical: 24,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.r),
+          ),
+          elevation: 8,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 420.w, // tablets pe zyada wide na ho
+            ),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(24.w, 28.h, 24.w, 20.h),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Icon
+                  Container(
+                    padding: EdgeInsets.all(16.r),
+                    decoration: BoxDecoration(
+                      color: kButtonColor.withOpacity(0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.shopping_cart_outlined,
+                      color: kButtonColor,
+                      size: 34.sp,
+                    ),
+                  ),
+                  SizedBox(height: 18.h),
+
+                  // Title
+                  Text(
+                    "Minimum Order Required",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+
+                  // Message
+                  Text(
+                    "Your order must be at least $currency 1000.00. "
+                        "Please add a few more items to continue.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13.5.sp,
+                      height: 1.4,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+
+                  // Current amount chip
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 14.w,
+                      vertical: 8.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "Current Total: ",
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        Text(
+                          "$currency ${payableAmount.toStringAsFixed(2)}",
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 24.h),
+
+                  // Buttons
+                  Row(
+                    children: [
+                      // Cancel
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 13.h),
+                            side: BorderSide(color: Colors.grey.shade300),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14.r),
+                            ),
+                          ),
+                          child: Text(
+                            "Cancel",
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 12.w),
+
+                      // Continue Shopping
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            _onContinueShopping();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: kButtonColor,
+                            elevation: 0,
+                            padding: EdgeInsets.symmetric(vertical: 13.h),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14.r),
+                            ),
+                          ),
+                          child: Text(
+                            "Continue Shopping",
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+  }
   Widget _sectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.all(14),

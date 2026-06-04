@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../Themes/colors.dart';
 import '../../../bean/orderbean.dart';
-
 
 class SlideUpPanel extends StatefulWidget {
   final OngoingOrders ongoingOrders;
@@ -27,7 +27,7 @@ class _SlideUpPanelState extends State<SlideUpPanel> {
       builder: (context, controller) {
         return Container(
           height: MediaQuery.of(context).size.height,
-          padding: EdgeInsets.only(left: 4.0),
+          padding: EdgeInsets.only(left: 4.w),
           color: kCardBackgroundColor,
           child: SingleChildScrollView(
             controller: controller,
@@ -42,18 +42,21 @@ class _SlideUpPanelState extends State<SlideUpPanel> {
                         Hero(
                           tag: 'Delivery Boy',
                           child: Padding(
-                            padding: EdgeInsets.only(bottom: 10.0, top: 14.0),
+                            padding: EdgeInsets.only(bottom: 10.h, top: 14.h),
                             child: ListTile(
                               leading: CircleAvatar(
-                                radius: 22.0,
+                                radius: 22.r,
                                 backgroundImage:
-                                    AssetImage('images/profile.png'),
+                                AssetImage('images/profile.png'),
                               ),
                               title: Text(
                                 widget.ongoingOrders.delivery_boy_name != null
                                     ? '${widget.ongoingOrders.delivery_boy_name}'
                                     : 'Delivery boy not assigned yet',
-                                style: Theme.of(context).textTheme.headlineMedium,
+                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                               subtitle: Text(
                                 'Delivery Partner',
@@ -61,9 +64,9 @@ class _SlideUpPanelState extends State<SlideUpPanel> {
                                     .textTheme
                                     .titleLarge!
                                     .copyWith(
-                                        fontSize: 11.7,
-                                        fontWeight: FontWeight.w500,
-                                        color: Color(0xffc2c2c2)),
+                                    fontSize: 11.7.sp,
+                                    fontWeight: FontWeight.w500,
+                                    color: Color(0xffc2c2c2)),
                               ),
                               trailing: FittedBox(
                                 fit: BoxFit.fill,
@@ -71,28 +74,28 @@ class _SlideUpPanelState extends State<SlideUpPanel> {
                                   children: <Widget>[
                                     IconButton(
                                       icon:
-                                          Icon(Icons.phone, color: kMainColor),
+                                      Icon(Icons.phone, color: kMainColor),
                                       onPressed: () {
                                         if (widget.ongoingOrders
-                                                    .delivery_boy_phone !=
-                                                null &&
+                                            .delivery_boy_phone !=
+                                            null &&
                                             widget.ongoingOrders
-                                                    .delivery_boy_phone
-                                                    .toString()
-                                                    .length >
+                                                .delivery_boy_phone
+                                                .toString()
+                                                .length >
                                                 5) {
                                           _launchURL(
                                               "tel://${widget.ongoingOrders.delivery_boy_phone}");
                                         } else {
                                           Fluttertoast.showToast(
-                                              msg: 'Delivery boy not assigned yet',
+                                              msg:
+                                              'Delivery boy not assigned yet',
                                               toastLength: Toast.LENGTH_SHORT,
                                               gravity: ToastGravity.BOTTOM,
                                               timeInSecForIosWeb: 1,
                                               backgroundColor: Colors.black26,
                                               textColor: Colors.white,
-                                              fontSize: 14.0
-                                          );
+                                              fontSize: 14.sp);
                                         }
                                       },
                                     ),
@@ -114,7 +117,7 @@ class _SlideUpPanelState extends State<SlideUpPanel> {
                       ],
                     ),
                   ),
-                  SizedBox(height: 6.0),
+                  SizedBox(height: 6.h),
                   ListView.builder(
                     shrinkWrap: true,
                     primary: false,
@@ -124,7 +127,7 @@ class _SlideUpPanelState extends State<SlideUpPanel> {
                         width: MediaQuery.of(context).size.width,
                         color: Colors.white,
                         child: ListTile(
-                          title:Column(
+                          title: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
@@ -134,54 +137,57 @@ class _SlideUpPanelState extends State<SlideUpPanel> {
                                     .headlineMedium!
                                     .copyWith(
                                     fontWeight: FontWeight.w500,
-                                    fontSize: 15.0,color: Colors.orange),
+                                    fontSize: 15.sp,
+                                    color: Colors.orange),
                               ),
                               Text(
-                                widget.ongoingOrders.data[index].product_name, // Replace this with your second text
+                                widget.ongoingOrders.data[index].product_name,
                                 style: Theme.of(context)
                                     .textTheme
                                     .headlineMedium!
                                     .copyWith(
                                     fontWeight: FontWeight.w500,
-                                    fontSize: 15.0),
+                                    fontSize: 15.sp),
                               ),
                             ],
                           ),
-
                           subtitle: Text(
                             '${widget.ongoingOrders.data[index].quantity} ${widget.ongoingOrders.data[index].unit} x ${widget.ongoingOrders.data[index].qty}',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodySmall!
-                                .copyWith(fontSize: 13.3),
+                                .copyWith(fontSize: 13.3.sp),
                           ),
                           trailing: Text(
                             '${widget.currency} ${widget.ongoingOrders.data[index].price}',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodySmall!
-                                .copyWith(fontSize: 13.3),
+                                .copyWith(fontSize: 13.3.sp),
                           ),
                         ),
                       );
                     },
                   ),
-                  SizedBox(height: 6.0),
+                  SizedBox(height: 6.h),
                   Container(
                     width: double.infinity,
                     padding:
-                        EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
+                    EdgeInsets.symmetric(vertical: 8.h, horizontal: 20.w),
                     child: Text('PAYMENT INFO',
-                        style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium!
+                            .copyWith(
                             color: kDisabledColor,
-                            fontSize: 13.3,
+                            fontSize: 13.3.sp,
                             letterSpacing: 0.67)),
                     color: Colors.white,
                   ),
                   Container(
                     color: Colors.white,
                     padding:
-                        EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
+                    EdgeInsets.symmetric(vertical: 8.h, horizontal: 20.w),
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
@@ -198,7 +204,7 @@ class _SlideUpPanelState extends State<SlideUpPanel> {
                   Container(
                     color: Colors.white,
                     padding:
-                        EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
+                    EdgeInsets.symmetric(vertical: 8.h, horizontal: 20.w),
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
@@ -212,16 +218,13 @@ class _SlideUpPanelState extends State<SlideUpPanel> {
                           ),
                         ]),
                   ),
-
-
-                  (widget.ongoingOrders.gst>0)?
-                  Container(
+                  (widget.ongoingOrders.gst > 0)
+                      ? Container(
                     color: Colors.white,
                     padding: EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 20.0),
+                        vertical: 8.h, horizontal: 20.w),
                     child: Row(
-                        mainAxisAlignment:
-                        MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
                           Text(
                             'GST',
@@ -232,43 +235,51 @@ class _SlideUpPanelState extends State<SlideUpPanel> {
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ]),
-                  ): Container(),
-
-
-
-
-
+                  )
+                      : Container(),
                   Container(
                     color: Colors.white,
                     padding:
-                        EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
+                    EdgeInsets.symmetric(vertical: 8.h, horizontal: 20.w),
                     child: (widget.ongoingOrders.payment_method == "Card" ||
-                            widget.ongoingOrders.payment_method == "Wallet")
+                        widget.ongoingOrders.payment_method == "Wallet")
                         ? Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: <Widget>[
-                                Text(
-                                  'Payment Status',
-                                  style: Theme.of(context).textTheme.headlineMedium,
-                                ),
-                                Text(
-                                  '${widget.ongoingOrders.payment_status}',
-                                  style: Theme.of(context).textTheme.headlineMedium,
-                                ),
-                              ])
-                        :   (widget.ongoingOrders.remaining_amount!=0)?
-                    Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
                           Text(
-                            'Pay on Delivery',
-                            style: Theme.of(context).textTheme.headlineMedium,
+                            'Payment Status',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium,
                           ),
                           Text(
-                            '${widget.currency} ${widget.ongoingOrders.new_price}',
-                            style: Theme.of(context).textTheme.headlineMedium,
+                            '${widget.ongoingOrders.payment_status}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium,
                           ),
-                        ]):Row(),
+                        ])
+                        : (widget.ongoingOrders.remaining_amount != 0)
+                        ?Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text(
+                          'Pay on Delivery',
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          '${widget.currency} ${widget.ongoingOrders.new_price}',
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    )
+                        : Row(),
                   ),
                 ],
               ),

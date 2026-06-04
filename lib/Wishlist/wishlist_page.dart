@@ -1091,6 +1091,7 @@ class _WishListProductsScreenState extends State<WishListProductsScreen> {
                 style: Theme.of(context).textTheme.titleLarge!.copyWith(
                   color: Colors.black,
                   fontWeight: FontWeight.w700,
+                  fontSize: 16.sp
                 ),
               ),
               const SizedBox(height: 2),

@@ -498,47 +498,49 @@ class _HomeState extends State<HomePageDemo>
   // ─────────────────────────────────────────────────────
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-    // SafeArea status-bar inset ke liye top padding add karo, warna
-    // notch wale devices par content overflow karega.
     final double topInset = MediaQuery.of(context).padding.top;
 
     return PreferredSize(
-      // 116 = top row + search bar ke liye safe height (logical px, NOT .sp).
-      preferredSize: Size.fromHeight(116 + topInset),
+      preferredSize: Size.fromHeight(116.h + topInset),
       child: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(22)),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(22.r)),
         ),
         child: SafeArea(
           bottom: false,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ── top row ──
               Padding(
-                padding: const EdgeInsets.fromLTRB(18, 10, 12, 8),
+                padding: EdgeInsets.fromLTRB(18.w, 10.h, 12.w, 8.h),
                 child: Row(
                   children: [
-                    const Icon(Icons.location_on_rounded, color: Colors.black, size: 20),
-                    const SizedBox(width: 6),
+                    Icon(Icons.location_on_rounded, color: Colors.black, size: 20.r),
+                    SizedBox(width: 6.w),
+
                     Expanded(
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: () async {
                           final result = await Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => LocationPage(lat, lng)),
+                            MaterialPageRoute(
+                              builder: (_) => LocationPage(lat, lng),
+                            ),
                           );
+
                           if (result is BackLatLng) {
                             lat = result.lat;
                             lng = result.lng;
+
                             final prefs = await SharedPreferences.getInstance();
                             await prefs.setString('lat', lat.toString());
                             await prefs.setString('lng', lng.toString());
-                            cityName = prefs.getString('city_name') ?? 'Current Location';
 
-                            // async gap ke baad widget alive hai ya nahi, confirm karo.
+                            cityName =
+                                prefs.getString('city_name') ?? 'Current Location';
+
                             if (!mounted) return;
                             setState(() {});
                             await _fetchCategories(refreshOnly: true);
@@ -551,7 +553,7 @@ class _HomeState extends State<HomePageDemo>
                             Text(
                               'delivery_to'.tr(),
                               style: GoogleFonts.nunito(
-                                fontSize: 14,
+                                fontSize: 13.sp.clamp(12, 14),
                                 color: Colors.black.withOpacity(.7),
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: .4,
@@ -567,17 +569,17 @@ class _HomeState extends State<HomePageDemo>
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.nunito(
-                                      fontSize: 19,
+                                      fontSize: 17.sp.clamp(15, 18),
                                       fontWeight: FontWeight.w800,
                                       color: Colors.black,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 3),
-                                const Icon(
+                                SizedBox(width: 3.w),
+                                Icon(
                                   Icons.keyboard_arrow_down_rounded,
                                   color: Colors.black,
-                                  size: 20,
+                                  size: 20.r,
                                 ),
                               ],
                             ),
@@ -585,24 +587,26 @@ class _HomeState extends State<HomePageDemo>
                         ),
                       ),
                     ),
-                    // Account button
+
                     GestureDetector(
                       onTap: () {
                         Navigator.of(context, rootNavigator: true)
                             .pushNamed(PageRoutes.accountPage);
                       },
                       child: Container(
-                        width: 38,
-                        height: 38,
+                        width: 38.r,
+                        height: 38.r,
                         decoration: BoxDecoration(
                           color: Colors.black.withOpacity(.06),
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.black.withOpacity(.30)),
+                          border: Border.all(
+                            color: Colors.black.withOpacity(.30),
+                          ),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.account_circle_rounded,
                           color: Colors.black,
-                          size: 22,
+                          size: 22.r,
                         ),
                       ),
                     ),
@@ -610,20 +614,19 @@ class _HomeState extends State<HomePageDemo>
                 ),
               ),
 
-              // ── search bar ──
               Padding(
-                padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                padding: EdgeInsets.fromLTRB(14.w, 0, 14.w, 14.h),
                 child: Container(
-                  height: 44, // fixed logical px (pehle 40.sp tha → scaling se overflow)
+                  height: 44.h,
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(.94),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(14.r),
                     border: Border.all(width: 1, color: Colors.grey),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(.07),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                        blurRadius: 8.r,
+                        offset: Offset(0, 2.h),
                       ),
                     ],
                   ),
@@ -631,19 +634,25 @@ class _HomeState extends State<HomePageDemo>
                     controller: searchController,
                     onChanged: _onSearchChanged,
                     textInputAction: TextInputAction.search,
-                    style: GoogleFonts.outfit(fontSize: 14, color: Colors.black87),
+                    style: GoogleFonts.outfit(
+                      fontSize: 14.sp.clamp(12, 14),
+                      color: Colors.black87,
+                    ),
                     decoration: InputDecoration(
                       isDense: true,
                       hintText: 'search_product'.tr(),
                       hintStyle: GoogleFonts.outfit(
-                        fontSize: 14,
+                        fontSize: 14.sp.clamp(12, 14),
                         color: Colors.grey.shade400,
                       ),
-                      prefixIcon:
-                      const Icon(Icons.search_rounded, color: Colors.grey, size: 20),
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        color: Colors.grey,
+                        size: 20.r,
+                      ),
                       suffixIcon: searchText.isNotEmpty
                           ? IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 18),
+                        icon: Icon(Icons.close_rounded, size: 18.r),
                         color: Colors.grey,
                         onPressed: () {
                           searchController.clear();
@@ -652,7 +661,7 @@ class _HomeState extends State<HomePageDemo>
                       )
                           : null,
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      contentPadding: EdgeInsets.symmetric(vertical: 12.h),
                     ),
                   ),
                 ),
@@ -662,8 +671,7 @@ class _HomeState extends State<HomePageDemo>
         ),
       ),
     );
-  }
-  // ─────────────────────────────────────────────────────
+  }  // ─────────────────────────────────────────────────────
   //  BODY
   // ─────────────────────────────────────────────────────
 

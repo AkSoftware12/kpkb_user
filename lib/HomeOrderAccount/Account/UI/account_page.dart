@@ -35,6 +35,7 @@ class AccountPage extends StatelessWidget {
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.w800,
+            fontSize: 16.sp
           ),
         ),
       ),
@@ -140,10 +141,10 @@ class _AccountState extends State<Account> {
               },
             ),
             Container(
-              margin: const EdgeInsets.all(12),
-              padding: const EdgeInsets.all(16),
+              margin:  EdgeInsets.all(8.sp),
+              padding:  EdgeInsets.all(8.sp),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(22),
+                borderRadius: BorderRadius.circular(15),
                 gradient: const LinearGradient(
                   colors: [
                     Colors.white,
@@ -171,15 +172,15 @@ class _AccountState extends State<Account> {
                     children: [
 
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding:  EdgeInsets.all(5.sp),
                         decoration: BoxDecoration(
                           color: Colors.black.withOpacity(.12),
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(
+                        child:  Icon(
                           Icons.credit_score,
                           color: Colors.black,
-                          size: 28,
+                          size: 22.sp,
                         ),
                       ),
 
@@ -194,8 +195,8 @@ class _AccountState extends State<Account> {
                               "GST Credit Limit",
                               style: TextStyle(
                                 color: Colors.black.withOpacity(.8),
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
+                                fontSize: 15.sp,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
@@ -213,26 +214,27 @@ class _AccountState extends State<Account> {
                         ),
                         child: Text(
                           "${rank['title']}",
-                          style: const TextStyle(
+                          style:  TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
+                            fontSize: 13.sp
                           ),
                         ),
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 22),
+                   SizedBox(height: 15.sp),
 
                   Row(
                     children: [
 
                       Expanded(
                         child: Container(
-                          padding: const EdgeInsets.all(14),
+                          padding:  EdgeInsets.all(10.sp),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(.08),
-                            borderRadius: BorderRadius.circular(18),
+                            color: Colors.black.withOpacity(.08),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,7 +244,7 @@ class _AccountState extends State<Account> {
                                 "Monthly Remaining",
                                 style: TextStyle(
                                   color: Colors.black.withOpacity(.7),
-                                  fontSize: 13,
+                                  fontSize: 13.sp,
                                 ),
                               ),
 
@@ -250,9 +252,9 @@ class _AccountState extends State<Account> {
 
                               Text(
                                 "₹$monthlyRemaining",
-                                style: const TextStyle(
+                                style:  TextStyle(
                                   color: Colors.black,
-                                  fontSize: 22,
+                                  fontSize: 20.sp,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -263,7 +265,7 @@ class _AccountState extends State<Account> {
                                 "Limit ₹$monthlyLimit",
                                 style: TextStyle(
                                   color: Colors.black.withOpacity(.6),
-                                  fontSize: 12,
+                                  fontSize: 11.sp,
                                 ),
                               ),
                             ],
@@ -275,10 +277,10 @@ class _AccountState extends State<Account> {
 
                       Expanded(
                         child: Container(
-                          padding: const EdgeInsets.all(14),
+                          padding:  EdgeInsets.all(10.sp),
                           decoration: BoxDecoration(
                             color: Colors.black.withOpacity(.08),
-                            borderRadius: BorderRadius.circular(18),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -288,7 +290,7 @@ class _AccountState extends State<Account> {
                                 "Annual Remaining",
                                 style: TextStyle(
                                   color: Colors.black.withOpacity(.7),
-                                  fontSize: 13,
+                                  fontSize: 13.sp,
                                 ),
                               ),
 
@@ -296,9 +298,9 @@ class _AccountState extends State<Account> {
 
                               Text(
                                 "₹$annualRemaining",
-                                style: const TextStyle(
+                                style:  TextStyle(
                                   color: Colors.black,
-                                  fontSize: 22,
+                                  fontSize: 20.sp,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -309,7 +311,7 @@ class _AccountState extends State<Account> {
                                 "Limit ₹$annualLimit",
                                 style: TextStyle(
                                   color: Colors.black.withOpacity(.6),
-                                  fontSize: 12,
+                                  fontSize: 11.sp,
                                 ),
                               ),
                             ],

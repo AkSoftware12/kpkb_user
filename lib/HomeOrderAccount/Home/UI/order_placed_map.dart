@@ -30,11 +30,15 @@ class OrderMapPage extends StatelessWidget {
   final dynamic user_id;
 
   OrderMapPage(
-      { this.instruction, this.pageTitle, this.ongoingOrders, this.currency,this.user_id});
+      {this.instruction,
+        this.pageTitle,
+        this.ongoingOrders,
+        this.currency,
+        this.user_id});
 
   @override
   Widget build(BuildContext context) {
-    return OrderMap(pageTitle!, ongoingOrders!, currency,user_id);
+    return OrderMap(pageTitle!, ongoingOrders!, currency, user_id);
   }
 }
 
@@ -44,8 +48,7 @@ class OrderMap extends StatefulWidget {
   final dynamic currency;
   final dynamic user_id;
 
-  OrderMap(this.pageTitle, this.ongoingOrders, this.currency,this.user_id);
-
+  OrderMap(this.pageTitle, this.ongoingOrders, this.currency, this.user_id);
 
   @override
   _OrderMapState createState() => _OrderMapState(user_id);
@@ -53,10 +56,8 @@ class OrderMap extends StatefulWidget {
 
 class _OrderMapState extends State<OrderMap> {
   bool showAction = false;
-  double _destLatitude = 30.3165,
-      _destLongitude = 78.0322;
-  double _originLatitude = 0.0,
-      _originLongitude = 0.0;
+  double _destLatitude = 30.3165, _destLongitude = 78.0322;
+  double _originLatitude = 0.0, _originLongitude = 0.0;
   final loc.Location location = loc.Location();
   GoogleMapController? _controller;
   Timer? timer;
@@ -81,7 +82,6 @@ class _OrderMapState extends State<OrderMap> {
         double.parse((widget.ongoingOrders.delivery_lng.toString()))
             .toStringAsFixed(4));
 
-
     _originLatitude = double.parse(
         double.parse((widget.ongoingOrders.vendor_lat.toString()))
             .toStringAsFixed(4));
@@ -91,8 +91,13 @@ class _OrderMapState extends State<OrderMap> {
     //_listenLocation();
     getDirections();
     timer = Timer.periodic(Duration(seconds: 3), (Timer t) => orderdetail());
+  }
 
-
+  @override
+  void dispose() {
+    timer?.cancel();
+    _locationSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _listenLocation() async {
@@ -103,8 +108,10 @@ class _OrderMapState extends State<OrderMap> {
         _locationSubscription = null;
       });
     }).listen((loc.LocationData currentlocation) async {
-      await FirebaseFirestore.instance.collection('location').doc(
-          user_id.toString()).set({
+      await FirebaseFirestore.instance
+          .collection('location')
+          .doc(user_id.toString())
+          .set({
         'latitude': currentlocation.latitude,
         'longitude': currentlocation.longitude,
         'name': 'john'
@@ -116,8 +123,10 @@ class _OrderMapState extends State<OrderMap> {
 
   _getLocation() async {
     try {
-      await FirebaseFirestore.instance.collection('location').doc(
-          user_id.toString()).set({
+      await FirebaseFirestore.instance
+          .collection('location')
+          .doc(user_id.toString())
+          .set({
         'latitude': double.parse(
             double.parse((widget.ongoingOrders.vendor_lat.toString()))
                 .toStringAsFixed(4)),
@@ -130,7 +139,6 @@ class _OrderMapState extends State<OrderMap> {
       print(e);
     }
   }
-
 
   Future<void> orderdetail() async {
     print("order Details");
@@ -180,6 +188,7 @@ class _OrderMapState extends State<OrderMap> {
       print("Order detail error: $e");
     }
   }
+
   Future<void> openWhatsAppChat() async {
     final Uri whatsappUri = Uri(
       scheme: 'https',
@@ -196,127 +205,89 @@ class _OrderMapState extends State<OrderMap> {
       throw 'Could not launch WhatsApp';
     }
   }
+
   @override
   Widget build(BuildContext context) {
-    return
-      WillPopScope(
-        onWillPop: () async {
-      Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-            return HomeOrderAccount(0,1);
-          }), (Route<dynamic> route) => true);
-      return true; //
-    },
-
-    child:
-    Scaffold(
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+              return HomeOrderAccount(0, 1);
+            }), (Route<dynamic> route) => true);
+        return true;
+      },
+      child: Scaffold(
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(52.0),
+          preferredSize: Size.fromHeight(52.h),
           child: AppBar(
             titleSpacing: 0.0,
+            backgroundColor: Colors.white,
             title: Text(
               'Order #${widget.ongoingOrders.cart_id}',
               style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 18.sp,
                   color: black_color,
                   fontWeight: FontWeight.w400),
             ),
             actions: [
               Padding(
-                padding: EdgeInsets.only(right: 10, top: 10, bottom: 10),
-                child:
-                TextButton(
+                padding: EdgeInsets.only(right: 10.w, top: 10.h, bottom: 10.h),
+                child: TextButton(
                   onPressed: () {
                     orderdetail();
                   },
                   child: Text(
                     'Refresh',
                     style: TextStyle(
-                        color: kMainColor, fontWeight: FontWeight.w400),
+                        fontSize: 14.sp,
+                        color: kMainColor,
+                        fontWeight: FontWeight.w400),
                   ),
                 ),
               ),
-
-              // Visibility(
-              //   visible: (widget.ongoingOrders.order_status == 'Pending' ||
-              //       widget.ongoingOrders.order_status == 'Confirmed')
-              //       ? true
-              //       : false,
-              //   child: Padding(
-              //     padding: EdgeInsets.only(right: 10, top: 10, bottom: 10),
-              //     child:
-              //     TextButton(
-              //       onPressed: () {
-              //         Navigator.of(context)
-              //             .push(MaterialPageRoute(builder: (context) {
-              //           return CancelProduct(widget.ongoingOrders.cart_id);
-              //         })).then((value) {
-              //           if (value) {
-              //             setState(() {
-              //               widget.ongoingOrders.order_status = "Cancelled";
-              //             });
-              //           }
-              //         });
-              //       },
-              //       child: Text(
-              //         'Cancel',
-              //         style: TextStyle(
-              //             color: kMainColor, fontWeight: FontWeight.w400),
-              //       ),
-              //     ),
-              //   ),
-              // )
             ],
           ),
         ),
-        body:
-        (widget.ongoingOrders.order_status == "Completed")?
-
-        // (widget.ongoingOrders.order_status != "Out For Delivery")?
-        Column(
+        body: (widget.ongoingOrders.order_status == "Completed")
+            ? Column(
           children: <Widget>[
             Expanded(
               child: Stack(
                 children: <Widget>[
                   Stack(
-                      alignment: Alignment.center,
-                      children: <Widget>[
-                        Padding(
-                          padding:  EdgeInsets.only(top: 0.sp),
-                          child: Center(
-                            child: GestureDetector(
-                              onTap: (){
-                                // openWhatsAppChat();
-                              },
-                              child: Image.asset("images/map.png",
-                                  width: MediaQuery.of(context).size.width,
-                                  // color: Color.fromRGBO(255, 255, 255, 0.9),
-                                  // colorBlendMode: BlendMode.modulate,
-                                  alignment: Alignment.center,
-                                  fit: BoxFit.fill),
-                            ),
+                    alignment: Alignment.center,
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.only(top: 0.sp),
+                        child: Center(
+                          child: GestureDetector(
+                            onTap: () {
+                              // openWhatsAppChat();
+                            },
+                            child: Image.asset("images/map.png",
+                                width: MediaQuery.of(context).size.width,
+                                alignment: Alignment.center,
+                                fit: BoxFit.fill),
                           ),
                         ),
-
-                        (widget.ongoingOrders.order_status=="Completed")?
-                        Text("Completed",
-                          style: TextStyle(fontSize: 32),):
-                        Text("Waiting for order to be picked...",
-                          style: TextStyle(fontSize: 20),),
-                      ]
+                      ),
+                      (widget.ongoingOrders.order_status == "Completed")
+                          ? Text(
+                        "Completed",
+                        style: TextStyle(fontSize: 32.sp),
+                      )
+                          : Text(
+                        "Waiting for order to be picked...",
+                        style: TextStyle(fontSize: 20.sp),
+                      ),
+                    ],
                   ),
                   Positioned(
                     top: 0.0,
-                    width: MediaQuery
-                        .of(context)
-                        .size
-                        .width,
+                    width: MediaQuery.of(context).size.width,
                     child: Container(
                       color: white_color,
-                      width: MediaQuery
-                          .of(context)
-                          .size
-                          .width,
+                      width: MediaQuery.of(context).size.width,
                       child: PreferredSize(
                         preferredSize: Size.fromHeight(0.0),
                         child: Column(
@@ -324,21 +295,19 @@ class _OrderMapState extends State<OrderMap> {
                             Row(
                               children: <Widget>[
                                 Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 16.3),
+                                  padding: EdgeInsets.only(left: 16.3.w),
                                   child: Image.asset(
                                     'images/maincategory/vegetables_fruitsact.png',
-                                    height: 42.3,
-                                    width: 33.7,
+                                    height: 42.3.h,
+                                    width: 33.7.w,
                                   ),
                                 ),
                                 Expanded(
                                   child: ListTile(
                                     title: Text(
-                                      '${widget.pageTitle}',
+                                      widget.pageTitle,
                                       style: orderMapAppBarTextStyle
-                                          .copyWith(
-                                          letterSpacing: 0.07),
+                                          .copyWith(letterSpacing: 0.07),
                                     ),
                                     subtitle: Text(
                                       (widget.ongoingOrders
@@ -353,45 +322,36 @@ class _OrderMapState extends State<OrderMap> {
                                           widget.ongoingOrders
                                               .time_slot !=
                                               null)
-                                          ? '${widget.ongoingOrders
-                                          .delivery_date} | ${widget
-                                          .ongoingOrders.time_slot}'
+                                          ? '${widget.ongoingOrders.delivery_date} | ${widget.ongoingOrders.time_slot}'
                                           : '',
-                                      style: Theme
-                                          .of(context)
+                                      style: Theme.of(context)
                                           .textTheme
                                           .titleLarge!
                                           .copyWith(
-                                          fontSize: 11.7,
+                                          fontSize: 11.7.sp,
                                           letterSpacing: 0.06,
                                           color: Color(0xffc1c1c1)),
                                     ),
                                     trailing: Column(
-                                      mainAxisAlignment: MainAxisAlignment
-                                          .center,
+                                      mainAxisAlignment:
+                                      MainAxisAlignment.center,
                                       children: <Widget>[
                                         Text(
-                                          '${widget.ongoingOrders
-                                              .order_status}',
+                                          '${widget.ongoingOrders.order_status}',
                                           style: orderMapAppBarTextStyle
-                                              .copyWith(
-                                              color: kMainColor),
+                                              .copyWith(color: kMainColor),
                                         ),
-                                        SizedBox(height: 7.0),
+                                        SizedBox(height: 7.h),
                                         Text(
-                                          '${widget.ongoingOrders.data
-                                              .length} items | ${widget
-                                              .currency} ${widget
-                                              .ongoingOrders.new_price}',
-                                          style: Theme
-                                              .of(context)
+                                          '${widget.ongoingOrders.data.length} items | ${widget.currency} ${widget.ongoingOrders.new_price}',
+                                          style: Theme.of(context)
                                               .textTheme
                                               .titleLarge!
                                               .copyWith(
-                                              fontSize: 11.7,
+                                              fontSize: 11.7.sp,
                                               letterSpacing: 0.06,
-                                              color: Color(
-                                                  0xffc1c1c1)),
+                                              color:
+                                              Color(0xffc1c1c1)),
                                         )
                                       ],
                                     ),
@@ -407,31 +367,26 @@ class _OrderMapState extends State<OrderMap> {
                               children: <Widget>[
                                 Padding(
                                   padding: EdgeInsets.only(
-                                      left: 36.0,
-                                      bottom: 6.0,
-                                      top: 6.0,
-                                      right: 12.0),
+                                      left: 36.w,
+                                      bottom: 6.h,
+                                      top: 6.h,
+                                      right: 12.w),
                                   child: ImageIcon(
                                     AssetImage(
                                         'images/custom/ic_pickup_pointact.png'),
-                                    size: 13.3,
-                                    color: kMainColor,
+                                    size: 13.3.sp,
+                                    color: Colors.black,
                                   ),
                                 ),
                                 Expanded(
                                   child: Text(
                                     '${widget.ongoingOrders.data[0].vendor_loc.toString()}'
-                                    // '${'\n'}${widget.ongoingOrders
-                                    // .data[1].vendor_loc.toString()}'
-                                    // '${'\n'}${widget.ongoingOrders
-                                    // .data[2].vendor_loc.toString()}'
                                         '\t',
-                                    style: Theme
-                                        .of(context)
+                                    style: Theme.of(context)
                                         .textTheme
                                         .bodySmall!
                                         .copyWith(
-                                        fontSize: 10.0,
+                                        fontSize: 10.sp,
                                         letterSpacing: 0.05),
                                   ),
                                 ),
@@ -441,27 +396,25 @@ class _OrderMapState extends State<OrderMap> {
                               children: <Widget>[
                                 Padding(
                                   padding: EdgeInsets.only(
-                                      left: 36.0,
-                                      bottom: 12.0,
-                                      top: 12.0,
-                                      right: 12.0),
+                                      left: 36.w,
+                                      bottom: 12.h,
+                                      top: 12.h,
+                                      right: 12.w),
                                   child: ImageIcon(
                                     AssetImage(
                                         'images/custom/ic_droppointact.png'),
-                                    size: 13.3,
+                                    size: 13.3.sp,
                                     color: kMainColor,
                                   ),
                                 ),
                                 Expanded(
                                   child: Text(
-                                    '${widget.ongoingOrders
-                                        .address}\t',
-                                    style: Theme
-                                        .of(context)
+                                    '${widget.ongoingOrders.address}\t',
+                                    style: Theme.of(context)
                                         .textTheme
                                         .bodySmall!
                                         .copyWith(
-                                        fontSize: 10.0,
+                                        fontSize: 10.sp,
                                         letterSpacing: 0.05),
                                   ),
                                 ),
@@ -477,75 +430,65 @@ class _OrderMapState extends State<OrderMap> {
               ),
             ),
             Container(
-              height: 60.0,
+              height: 60.h,
               color: kCardBackgroundColor,
-              padding: EdgeInsets.symmetric(horizontal: 20.0),
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Text(
-                    '${widget.ongoingOrders.data
-                        .length} items  |  ${widget.currency} ${widget
-                        .ongoingOrders.price}',
-                    style: Theme
-                        .of(context)
+                    '${widget.ongoingOrders.data.length} items  |  ${widget.currency} ${widget.ongoingOrders.price}',
+                    style: Theme.of(context)
                         .textTheme
                         .bodySmall!
                         .copyWith(
-                        fontWeight: FontWeight.w500, fontSize: 15),
+                        fontWeight: FontWeight.w500, fontSize: 15.sp),
                   ),
                 ],
               ),
             )
           ],
         )
-            :
-
-        Column(
+            : Column(
           children: <Widget>[
             Expanded(
               child: Stack(
                 children: <Widget>[
                   Stack(
-                      alignment: Alignment.center,
-                      children: <Widget>[
-                        Padding(
-                          padding:  EdgeInsets.only(top: 0.sp),
-                          child: Center(
-                            child: GestureDetector(
-                              onTap: (){
-                                // openWhatsAppChat();
-
-                              },
-                              child: Image.asset("assets/order_tracking_image.jpg",
-                                  width: MediaQuery.of(context).size.width,
-                                  // color: Color.fromRGBO(255, 255, 255, 0.9),
-                                  // colorBlendMode: BlendMode.modulate,
-                                  alignment: Alignment.center,
-                                  fit: BoxFit.fill),
-                            ),
+                    alignment: Alignment.center,
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.only(top: 0.sp),
+                        child: Center(
+                          child: GestureDetector(
+                            onTap: () {
+                              // openWhatsAppChat();
+                            },
+                            child: Image.asset(
+                                "assets/order_tracking_image.jpg",
+                                width: MediaQuery.of(context).size.width,
+                                alignment: Alignment.center,
+                                fit: BoxFit.fill),
                           ),
-                        )  ,
-
-                        (widget.ongoingOrders.order_status=="Completed")?
-                        Text("Completed",
-                          style: TextStyle(fontSize: 32),):
-                        Text("Waiting for order to be picked...",
-                          style: TextStyle(fontSize: 20),),
-                      ]
+                        ),
+                      ),
+                      (widget.ongoingOrders.order_status == "Completed")
+                          ? Text(
+                        "Completed",
+                        style: TextStyle(fontSize: 32.sp),
+                      )
+                          : Text(
+                        "Waiting for order to be picked...",
+                        style: TextStyle(fontSize: 20.sp),
+                      ),
+                    ],
                   ),
                   Positioned(
                     top: 0.0,
-                    width: MediaQuery
-                        .of(context)
-                        .size
-                        .width,
+                    width: MediaQuery.of(context).size.width,
                     child: Container(
                       color: white_color,
-                      width: MediaQuery
-                          .of(context)
-                          .size
-                          .width,
+                      width: MediaQuery.of(context).size.width,
                       child: PreferredSize(
                         preferredSize: Size.fromHeight(0.0),
                         child: Column(
@@ -553,12 +496,11 @@ class _OrderMapState extends State<OrderMap> {
                             Row(
                               children: <Widget>[
                                 Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 16.3),
+                                  padding: EdgeInsets.only(left: 16.3.w),
                                   child: Image.asset(
                                     'images/maincategory/vegetables_fruitsact.png',
-                                    height: 42.3,
-                                    width: 33.7,
+                                    height: 42.3.h,
+                                    width: 33.7.w,
                                   ),
                                 ),
                                 Expanded(
@@ -566,8 +508,7 @@ class _OrderMapState extends State<OrderMap> {
                                     title: Text(
                                       '${widget.pageTitle}',
                                       style: orderMapAppBarTextStyle
-                                          .copyWith(
-                                          letterSpacing: 0.07),
+                                          .copyWith(letterSpacing: 0.07),
                                     ),
                                     subtitle: Text(
                                       (widget.ongoingOrders
@@ -582,54 +523,48 @@ class _OrderMapState extends State<OrderMap> {
                                           widget.ongoingOrders
                                               .time_slot !=
                                               null)
-                                          ? '${widget.ongoingOrders
-                                          .delivery_date} | ${widget
-                                          .ongoingOrders.time_slot}'
+                                          ? '${widget.ongoingOrders.delivery_date} | ${widget.ongoingOrders.time_slot}'
                                           : '',
-                                      style: Theme
-                                          .of(context)
+                                      style: Theme.of(context)
                                           .textTheme
                                           .titleLarge!
                                           .copyWith(
-                                          fontSize: 11.7,
+                                          fontSize: 11.7.sp,
                                           letterSpacing: 0.06,
-                                          color: Color(0xffc1c1c1)),
+                                          color: Colors.black),
                                     ),
                                     trailing: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      mainAxisAlignment:
+                                      MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.end,
                                       children: <Widget>[
                                         Text(
                                           '${widget.ongoingOrders.order_status}',
-                                          style: orderMapAppBarTextStyle.copyWith(
+                                          style: orderMapAppBarTextStyle
+                                              .copyWith(
                                             color: Colors.black,
                                           ),
                                         ),
-
-                                        SizedBox(height: 4),
-
-
-
+                                        SizedBox(height: 4.h),
                                         Text(
                                           '${widget.ongoingOrders.data.length} items | ${widget.currency} ${widget.ongoingOrders.new_price}',
                                           style: Theme.of(context)
                                               .textTheme
                                               .titleLarge!
                                               .copyWith(
-                                            fontSize: 11.7,
+                                            fontSize: 11.7.sp,
                                             letterSpacing: 0.06,
-                                            color: const Color(0xffc1c1c1),
+                                            color:
+                                           Colors.black,
                                           ),
                                         ),
-
-
                                       ],
                                     ),
                                   ),
                                 )
                               ],
                             ),
-
                             Divider(
                               color: kCardBackgroundColor,
                               thickness: 1.0,
@@ -638,31 +573,26 @@ class _OrderMapState extends State<OrderMap> {
                               children: <Widget>[
                                 Padding(
                                   padding: EdgeInsets.only(
-                                      left: 36.0,
-                                      bottom: 6.0,
-                                      top: 6.0,
-                                      right: 12.0),
+                                      left: 36.w,
+                                      bottom: 6.h,
+                                      top: 6.h,
+                                      right: 12.w),
                                   child: ImageIcon(
                                     AssetImage(
                                         'images/custom/ic_pickup_pointact.png'),
-                                    size: 13.3,
-                                    color: kMainColor,
+                                    size: 13.3.sp,
+                                    color: Colors.black,
                                   ),
                                 ),
                                 Expanded(
                                   child: Text(
                                     '${widget.ongoingOrders.data[0].vendor_loc.toString()}'
-                                        // '${'\n'}${widget.ongoingOrders
-                                        // .data[1].vendor_loc.toString()}'
-                                        // '${'\n'}${widget.ongoingOrders
-                                        // .data[2].vendor_loc.toString()}'
                                         '\t',
-                                    style: Theme
-                                        .of(context)
+                                    style: Theme.of(context)
                                         .textTheme
                                         .bodySmall!
                                         .copyWith(
-                                        fontSize: 10.0,
+                                        fontSize: 10.sp,
                                         letterSpacing: 0.05),
                                   ),
                                 ),
@@ -672,27 +602,25 @@ class _OrderMapState extends State<OrderMap> {
                               children: <Widget>[
                                 Padding(
                                   padding: EdgeInsets.only(
-                                      left: 36.0,
-                                      bottom: 12.0,
-                                      top: 12.0,
-                                      right: 12.0),
+                                      left: 36.w,
+                                      bottom: 12.h,
+                                      top: 12.h,
+                                      right: 12.w),
                                   child: ImageIcon(
                                     AssetImage(
                                         'images/custom/ic_droppointact.png'),
-                                    size: 13.3,
-                                    color: kMainColor,
+                                    size: 13.3.sp,
+                                    color: Colors.black,
                                   ),
                                 ),
                                 Expanded(
                                   child: Text(
-                                    '${widget.ongoingOrders
-                                        .address}\t',
-                                    style: Theme
-                                        .of(context)
+                                    '${widget.ongoingOrders.address}\t',
+                                    style: Theme.of(context)
                                         .textTheme
                                         .bodySmall!
                                         .copyWith(
-                                        fontSize: 10.0,
+                                        fontSize: 10.sp,
                                         letterSpacing: 0.05),
                                   ),
                                 ),
@@ -708,22 +636,19 @@ class _OrderMapState extends State<OrderMap> {
               ),
             ),
             Container(
-              height: 60.0,
+              height: 60.h,
               color: kCardBackgroundColor,
-              padding: EdgeInsets.symmetric(horizontal: 20.0),
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Text(
-                    '${widget.ongoingOrders.data
-                        .length} items  |  ${widget.currency} ${widget
-                        .ongoingOrders.new_price}',
-                    style: Theme
-                        .of(context)
+                    '${widget.ongoingOrders.data.length} items  |  ${widget.currency} ${widget.ongoingOrders.new_price}',
+                    style: Theme.of(context)
                         .textTheme
                         .bodySmall!
                         .copyWith(
-                        fontWeight: FontWeight.w500, fontSize: 15),
+                        fontWeight: FontWeight.bold, fontSize: 15.sp),
                   ),
                   Container(
                     padding: EdgeInsets.symmetric(
@@ -775,7 +700,7 @@ class _OrderMapState extends State<OrderMap> {
                               : "POD",
                           style: TextStyle(
                             fontSize: 10.sp,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.bold,
                             color: widget.ongoingOrders.payment_status
                                 .toString()
                                 .toLowerCase() ==
@@ -791,452 +716,9 @@ class _OrderMapState extends State<OrderMap> {
               ),
             )
           ],
-        )
-
-
-        // StreamBuilder(
-        //     stream: FirebaseFirestore.instance.collection('location')
-        //         .snapshots(),
-        //     builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        //       if (snapshot.hasData) {
-        //         if (_added) {
-        //           mymap(snapshot);
-        //         }
-        //         return
-        //           Column(
-        //             children: <Widget>[
-        //               Expanded(
-        //                 child: Stack(
-        //                   children: <Widget>[
-        //                     GoogleMap(
-        //                       mapType: MapType.normal,
-        //                       markers: Set<Marker>.of(markers.values),
-        //                       polylines: Set<Polyline>.of(polylines.values),
-        //                       initialCameraPosition: CameraPosition(
-        //                           target: LatLng(_originLatitude,
-        //                               _originLongitude),
-        //                           zoom: 15),
-        //                       onMapCreated: (
-        //                           GoogleMapController controller) async {
-        //                         setState(() {
-        //                           _controller = controller;
-        //                           _added = true;
-        //                         });
-        //                         getDirections();
-        //                       },
-        //                     ),
-        //                     Positioned(
-        //                       top: 0.0,
-        //                       width: MediaQuery
-        //                           .of(context)
-        //                           .size
-        //                           .width,
-        //                       child: Container(
-        //                         color: white_color,
-        //                         width: MediaQuery
-        //                             .of(context)
-        //                             .size
-        //                             .width,
-        //                         child: PreferredSize(
-        //                           preferredSize: Size.fromHeight(0.0),
-        //                           child: Column(
-        //                             children: <Widget>[
-        //                               Row(
-        //                                 children: <Widget>[
-        //                                   Padding(
-        //                                     padding: const EdgeInsets.only(
-        //                                         left: 16.3),
-        //                                     child: Image.asset(
-        //                                       'images/maincategory/vegetables_fruitsact.png',
-        //                                       height: 42.3,
-        //                                       width: 33.7,
-        //                                     ),
-        //                                   ),
-        //                                   Expanded(
-        //                                     child: ListTile(
-        //                                       title: Text(
-        //                                         '${widget.pageTitle}',
-        //                                         style: orderMapAppBarTextStyle
-        //                                             .copyWith(
-        //                                             letterSpacing: 0.07),
-        //                                       ),
-        //                                       subtitle: Text(
-        //                                         (widget.ongoingOrders
-        //                                             .delivery_date !=
-        //                                             "null" &&
-        //                                             widget.ongoingOrders
-        //                                                 .time_slot !=
-        //                                                 "null" &&
-        //                                             widget.ongoingOrders
-        //                                                 .delivery_date !=
-        //                                                 null &&
-        //                                             widget.ongoingOrders
-        //                                                 .time_slot !=
-        //                                                 null)
-        //                                             ? '${widget.ongoingOrders
-        //                                             .delivery_date} | ${widget
-        //                                             .ongoingOrders.time_slot}'
-        //                                             : '',
-        //                                         style: Theme
-        //                                             .of(context)
-        //                                             .textTheme
-        //                                             .titleLarge!
-        //                                             .copyWith(
-        //                                             fontSize: 11.7,
-        //                                             letterSpacing: 0.06,
-        //                                             color: Color(0xffc1c1c1)),
-        //                                       ),
-        //                                       trailing: Column(
-        //                                         mainAxisAlignment: MainAxisAlignment
-        //                                             .center,
-        //                                         children: <Widget>[
-        //                                           Text(
-        //                                             '${widget.ongoingOrders
-        //                                                 .order_status}',
-        //                                             style: orderMapAppBarTextStyle
-        //                                                 .copyWith(
-        //                                                 color: kMainColor),
-        //                                           ),
-        //                                           SizedBox(height: 7.0),
-        //                                           Text(
-        //                                             '${widget.ongoingOrders.data
-        //                                                 .length} items | ${widget
-        //                                                 .currency} ${widget
-        //                                                 .ongoingOrders.price}',
-        //                                             style: Theme
-        //                                                 .of(context)
-        //                                                 .textTheme
-        //                                                 .titleLarge!
-        //                                                 .copyWith(
-        //                                                 fontSize: 11.7,
-        //                                                 letterSpacing: 0.06,
-        //                                                 color: Color(
-        //                                                     0xffc1c1c1)),
-        //                                           )
-        //                                         ],
-        //                                       ),
-        //                                     ),
-        //                                   )
-        //                                 ],
-        //                               ),
-        //                               Divider(
-        //                                 color: kCardBackgroundColor,
-        //                                 thickness: 1.0,
-        //                               ),
-        //                               Row(
-        //                                 children: <Widget>[
-        //                                   Padding(
-        //                                     padding: EdgeInsets.only(
-        //                                         left: 36.0,
-        //                                         bottom: 6.0,
-        //                                         top: 6.0,
-        //                                         right: 12.0),
-        //                                     child: ImageIcon(
-        //                                       AssetImage(
-        //                                           'images/custom/ic_pickup_pointact.png'),
-        //                                       size: 13.3,
-        //                                       color: kMainColor,
-        //                                     ),
-        //                                   ),
-        //                                   Expanded(
-        //                                     child: Text(
-        //                                       '${widget.pageTitle}\t',
-        //                                       style: Theme
-        //                                           .of(context)
-        //                                           .textTheme
-        //                                           .bodySmall!
-        //                                           .copyWith(
-        //                                           fontSize: 10.0,
-        //                                           letterSpacing: 0.05),
-        //                                     ),
-        //                                   ),
-        //                                 ],
-        //                               ),
-        //                               Row(
-        //                                 children: <Widget>[
-        //                                   Padding(
-        //                                     padding: EdgeInsets.only(
-        //                                         left: 36.0,
-        //                                         bottom: 12.0,
-        //                                         top: 12.0,
-        //                                         right: 12.0),
-        //                                     child: ImageIcon(
-        //                                       AssetImage(
-        //                                           'images/custom/ic_droppointact.png'),
-        //                                       size: 13.3,
-        //                                       color: kMainColor,
-        //                                     ),
-        //                                   ),
-        //                                   Expanded(
-        //                                     child: Text(
-        //                                       '${widget.ongoingOrders
-        //                                           .address}\t',
-        //                                       style: Theme
-        //                                           .of(context)
-        //                                           .textTheme
-        //                                           .bodySmall!
-        //                                           .copyWith(
-        //                                           fontSize: 10.0,
-        //                                           letterSpacing: 0.05),
-        //                                     ),
-        //                                   ),
-        //                                 ],
-        //                               ),
-        //                             ],
-        //                           ),
-        //                         ),
-        //                       ),
-        //                     ),
-        //                     SlideUpPanel(widget.ongoingOrders, widget.currency),
-        //                   ],
-        //                 ),
-        //               ),
-        //               Container(
-        //                 height: 60.0,
-        //                 color: kCardBackgroundColor,
-        //                 padding: EdgeInsets.symmetric(horizontal: 20.0),
-        //                 child: Row(
-        //                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //                   children: <Widget>[
-        //                     Text(
-        //                       '${widget.ongoingOrders.data
-        //                           .length} items  |  ${widget.currency} ${widget
-        //                           .ongoingOrders.price}',
-        //                       style: Theme
-        //                           .of(context)
-        //                           .textTheme
-        //                           .bodySmall!
-        //                           .copyWith(fontWeight: FontWeight.w500,
-        //                           fontSize: 15),
-        //                     ),
-        //                   ],
-        //                 ),
-        //               )
-        //             ],
-        //           );
-        //       }
-        //       else {
-        //         return
-        //           Column(
-        //             children: <Widget>[
-        //               Expanded(
-        //                 child: Stack(
-        //                   children: <Widget>[
-        //                     Stack(
-        //                         alignment: Alignment.center,
-        //                         children: <Widget>[
-        //                           Image.asset("images/map.png",
-        //                               width: MediaQuery
-        //                                   .of(context)
-        //                                   .size
-        //                                   .width,
-        //                               color: Color.fromRGBO(255, 255, 255, 0.5),
-        //                               colorBlendMode: BlendMode.modulate,
-        //                               alignment: Alignment.center,
-        //                               fit: BoxFit.fill),
-        //                           (widget.ongoingOrders.order_status=="Completed")?
-        //                           Text("Completed",
-        //                             style: TextStyle(fontSize: 32),):
-        //                           Text("Waiting for order to be picked...",
-        //                             style: TextStyle(fontSize: 32),),
-        //                         ]
-        //                     ),
-        //                     Positioned(
-        //                       top: 0.0,
-        //                       width: MediaQuery
-        //                           .of(context)
-        //                           .size
-        //                           .width,
-        //                       child: Container(
-        //                         color: white_color,
-        //                         width: MediaQuery
-        //                             .of(context)
-        //                             .size
-        //                             .width,
-        //                         child: PreferredSize(
-        //                           preferredSize: Size.fromHeight(0.0),
-        //                           child: Column(
-        //                             children: <Widget>[
-        //                               Row(
-        //                                 children: <Widget>[
-        //                                   Padding(
-        //                                     padding: const EdgeInsets.only(
-        //                                         left: 16.3),
-        //                                     child: Image.asset(
-        //                                       'images/maincategory/vegetables_fruitsact.png',
-        //                                       height: 42.3,
-        //                                       width: 33.7,
-        //                                     ),
-        //                                   ),
-        //                                   Expanded(
-        //                                     child: ListTile(
-        //                                       title: Text(
-        //                                         '${widget.pageTitle}',
-        //                                         style: orderMapAppBarTextStyle
-        //                                             .copyWith(
-        //                                             letterSpacing: 0.07),
-        //                                       ),
-        //                                       subtitle: Text(
-        //                                         (widget.ongoingOrders
-        //                                             .delivery_date !=
-        //                                             "null" &&
-        //                                             widget.ongoingOrders
-        //                                                 .time_slot !=
-        //                                                 "null" &&
-        //                                             widget.ongoingOrders
-        //                                                 .delivery_date !=
-        //                                                 null &&
-        //                                             widget.ongoingOrders
-        //                                                 .time_slot !=
-        //                                                 null)
-        //                                             ? '${widget.ongoingOrders
-        //                                             .delivery_date} | ${widget
-        //                                             .ongoingOrders.time_slot}'
-        //                                             : '',
-        //
-        //                                         style: Theme
-        //                                             .of(context)
-        //                                             .textTheme
-        //                                             .titleLarge!
-        //                                             .copyWith(
-        //                                             fontSize: 11.7,
-        //                                             letterSpacing: 0.06,
-        //                                             color: Color(0xffc1c1c1)),
-        //                                       ),
-        //                                       trailing: Column(
-        //                                         mainAxisAlignment: MainAxisAlignment
-        //                                             .center,
-        //                                         children: <Widget>[
-        //                                           Text(
-        //                                             '${widget.ongoingOrders
-        //                                                 .order_status}',
-        //                                             style: orderMapAppBarTextStyle
-        //                                                 .copyWith(
-        //                                                 color: kMainColor),
-        //                                           ),
-        //                                           SizedBox(height: 7.0),
-        //                                           Text(
-        //                                             '${widget.ongoingOrders.data
-        //                                                 .length} items | ${widget
-        //                                                 .currency} ${widget
-        //                                                 .ongoingOrders.price}',
-        //                                             style: Theme
-        //                                                 .of(context)
-        //                                                 .textTheme
-        //                                                 .titleLarge!
-        //                                                 .copyWith(
-        //                                                 fontSize: 11.7,
-        //                                                 letterSpacing: 0.06,
-        //                                                 color: Color(
-        //                                                     0xffc1c1c1)),
-        //                                           )
-        //                                         ],
-        //                                       ),
-        //                                     ),
-        //                                   )
-        //                                 ],
-        //                               ),
-        //                               Divider(
-        //                                 color: kCardBackgroundColor,
-        //                                 thickness: 1.0,
-        //                               ),
-        //                               Row(
-        //                                 children: <Widget>[
-        //                                   Padding(
-        //                                     padding: EdgeInsets.only(
-        //                                         left: 36.0,
-        //                                         bottom: 6.0,
-        //                                         top: 6.0,
-        //                                         right: 12.0),
-        //                                     child: ImageIcon(
-        //                                       AssetImage(
-        //                                           'images/custom/ic_pickup_pointact.png'),
-        //                                       size: 13.3,
-        //                                       color: kMainColor,
-        //                                     ),
-        //                                   ),
-        //                                   Expanded(
-        //                                     child: Text(
-        //                                       '${widget.pageTitle}\t',
-        //                                       style: Theme
-        //                                           .of(context)
-        //                                           .textTheme
-        //                                           .bodySmall!
-        //                                           .copyWith(
-        //                                           fontSize: 10.0,
-        //                                           letterSpacing: 0.05),
-        //                                     ),
-        //                                   ),
-        //                                 ],
-        //                               ),
-        //                               Row(
-        //                                 children: <Widget>[
-        //                                   Padding(
-        //                                     padding: EdgeInsets.only(
-        //                                         left: 36.0,
-        //                                         bottom: 12.0,
-        //                                         top: 12.0,
-        //                                         right: 12.0),
-        //                                     child: ImageIcon(
-        //                                       AssetImage(
-        //                                           'images/custom/ic_droppointact.png'),
-        //                                       size: 13.3,
-        //                                       color: kMainColor,
-        //                                     ),
-        //                                   ),
-        //                                   Expanded(
-        //                                     child: Text(
-        //                                       '${widget.ongoingOrders
-        //                                           .address}\t',
-        //                                       style: Theme
-        //                                           .of(context)
-        //                                           .textTheme
-        //                                           .bodySmall!
-        //                                           .copyWith(
-        //                                           fontSize: 10.0,
-        //                                           letterSpacing: 0.05),
-        //                                     ),
-        //                                   ),
-        //                                 ],
-        //                               ),
-        //                             ],
-        //                           ),
-        //                         ),
-        //                       ),
-        //                     ),
-        //                     SlideUpPanel(widget.ongoingOrders, widget.currency),
-        //                   ],
-        //                 ),
-        //               ),
-        //               Container(
-        //                 height: 60.0,
-        //                 color: kCardBackgroundColor,
-        //                 padding: EdgeInsets.symmetric(horizontal: 20.0),
-        //                 child: Row(
-        //                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //                   children: <Widget>[
-        //                     Text(
-        //                       '${widget.ongoingOrders.data
-        //                           .length} items  |  ${widget.currency} ${widget
-        //                           .ongoingOrders.price}',
-        //                       style: Theme
-        //                           .of(context)
-        //                           .textTheme
-        //                           .bodySmall!
-        //                           .copyWith(
-        //                           fontWeight: FontWeight.w500, fontSize: 15),
-        //                     ),
-        //                   ],
-        //                 ),
-        //               )
-        //             ],
-        //           );
-        //       }
-        //     })
-
-
-
-    ));
+        ),
+      ),
+    );
   }
 
   _addMarker(LatLng position, String id, BitmapDescriptor descriptor) {
@@ -1247,12 +729,10 @@ class _OrderMapState extends State<OrderMap> {
   }
 
   void mymap(AsyncSnapshot<QuerySnapshot> snapshot) async {
-      _originLatitude = snapshot.data!.docs.singleWhere(
-              (element) =>
-          element.id == widget.user_id)['latitude'];
-      _originLongitude = snapshot.data!.docs.singleWhere(
-              (element) =>
-          element.id == widget.user_id)['longitude'];
+    _originLatitude = snapshot.data!.docs
+        .singleWhere((element) => element.id == widget.user_id)['latitude'];
+    _originLongitude = snapshot.data!.docs
+        .singleWhere((element) => element.id == widget.user_id)['longitude'];
 
     Timer(Duration(minutes: 4), () async {
       await _controller!
@@ -1263,26 +743,12 @@ class _OrderMapState extends State<OrderMap> {
           ),
           zoom: 15)));
     });
-    // _addMarker(LatLng(_originLatitude, _originLongitude), "source",
-    //     await BitmapDescriptor.fromAssetImage(
-    //         ImageConfiguration(size: Size(90, 90)), 'assets/delivery.png'));
-    // _addMarker(LatLng(_destLatitude, _destLongitude), "dest",
-    //     BitmapDescriptor.defaultMarkerWithHue(90));
 
     getDirections();
-
   }
-
 
   getDirections() async {
     List<LatLng> polylineCoordinates = [];
-
-    // PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-    //   apiKey,
-    //   PointLatLng(_originLatitude, _originLongitude),
-    //   PointLatLng(_destLatitude, _destLongitude),
-    //   travelMode: TravelMode.driving,
-    // );
 
     _addMarker(LatLng(_originLatitude, _originLongitude), "source",
         await BitmapDescriptor.fromAssetImage(
@@ -1290,13 +756,6 @@ class _OrderMapState extends State<OrderMap> {
     _addMarker(LatLng(_destLatitude, _destLongitude), "dest",
         BitmapDescriptor.defaultMarkerWithHue(30));
 
-    // if (result.points.isNotEmpty) {
-    //   result.points.forEach((PointLatLng point) {
-    //     polylineCoordinates.add(LatLng(point.latitude, point.longitude));
-    //   });
-    // } else {
-    //   print(result.errorMessage);
-    // }
     addPolyLine(polylineCoordinates);
   }
 
@@ -1311,5 +770,4 @@ class _OrderMapState extends State<OrderMap> {
     polylines[id] = polyline;
     setState(() {});
   }
-
 }

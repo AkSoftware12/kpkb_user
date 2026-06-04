@@ -11,6 +11,7 @@ import 'package:kpUser/Themes/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
+import '../Routes/routes.dart';
 import '../baseurlp/baseurl.dart';
 import '../databasehelper/dbhelper.dart';
 
@@ -962,14 +963,42 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
+        title:  Text(
           "Product Details",
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.w900,
+            fontSize: 14.sp
           ),
         ),
         iconTheme: const IconThemeData(color: Colors.black),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 6.0),
+            child: IconButton(
+              icon: ImageIcon(
+                const AssetImage('images/icons/ic_cart blk.png'),
+                color: kButtonColor,
+              ),
+              onPressed: () async {
+                Navigator.of(context, rootNavigator: true)
+                    .pushNamed(PageRoutes.viewCart)
+                    .then((value) {
+                  if (!context.mounted) return;
+
+                  // refreshQuantities();
+                  // getCartCount();
+                });
+                // Navigator.pushNamed(context, PageRoutes.viewCart).then((value) {
+                //   if (!mounted) return;
+                //   refreshQuantities();
+                //   getCartCount();
+                // });
+              },
+            ),
+          ),
+
+        ],
       ),
       bottomNavigationBar:
       isLoading || product == null ? null : _bottomBar(),

@@ -33,11 +33,12 @@ class SavedAddressesPage extends StatelessWidget {
         foregroundColor: Colors.white,
         iconTheme: IconThemeData(color: Colors.black),
         centerTitle: true,
-        title: const Text(
+        title:  Text(
           'Saved Addresses',
           style: TextStyle(
             fontWeight: FontWeight.w900,
             color: Colors.black,
+            fontSize: 16.sp
           ),
         ),
       ),
@@ -263,7 +264,7 @@ class _SavedAddressesState extends State<SavedAddresses> {
           padding: const EdgeInsets.fromLTRB(10,10,10, 10),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(.08),
@@ -292,8 +293,8 @@ class _SavedAddressesState extends State<SavedAddresses> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                    height: 76,
-                    width: 76,
+                    height: 50.sp,
+                    width: 50.sp,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
@@ -305,10 +306,13 @@ class _SavedAddressesState extends State<SavedAddresses> {
                       ),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      Icons.add_location_alt_rounded,
-                      color: kButtonColor,
-                      size: 40,
+                    child: Padding(
+                      padding: const EdgeInsets.all(5.0),
+                      child: Icon(
+                        Icons.add_location_alt_rounded,
+                        color: kButtonColor,
+                        size: 25.sp,
+                      ),
                     ),
                   ),
                   SizedBox(width: 10.sp,),
@@ -319,7 +323,7 @@ class _SavedAddressesState extends State<SavedAddresses> {
                        Text(
                         'Add Delivery Address',
                         style: TextStyle(
-                          fontSize: 18.sp,
+                          fontSize: 15.sp,
                           fontWeight: FontWeight.w900,
                           letterSpacing: -0.3,
                         ),
@@ -332,7 +336,7 @@ class _SavedAddressesState extends State<SavedAddresses> {
                         textAlign: TextAlign.start,
                         style: TextStyle(
                           color: Colors.grey.shade600,
-                          fontSize: 14,
+                          fontSize: 12.sp,
                           height: 1.4,
                         ),
                       ),
@@ -353,7 +357,7 @@ class _SavedAddressesState extends State<SavedAddresses> {
               // Top Icon
 
 
-               SizedBox(height: 20.sp),
+               SizedBox(height: 15.sp),
 
               // Manual + Auto Buttons
               IntrinsicHeight(
@@ -396,8 +400,8 @@ class _SavedAddressesState extends State<SavedAddresses> {
                             children: [
 
                               Container(
-                                height: 56,
-                                width: 56,
+                                height: 50.sp,
+                                width: 50.sp,
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(18),
@@ -409,14 +413,14 @@ class _SavedAddressesState extends State<SavedAddresses> {
                                     ),
                                   ],
                                 ),
-                                child: const Icon(
+                                child:  Icon(
                                   Icons.edit_location_alt_rounded,
-                                  size: 30,
+                                  size: 25.sp,
                                   color: Colors.black87,
                                 ),
                               ),
 
-                              const SizedBox(height: 14),
+                              const SizedBox(height: 10),
 
                                Text(
                                 "Manual",
@@ -491,25 +495,25 @@ class _SavedAddressesState extends State<SavedAddresses> {
                             children: [
 
                               Container(
-                                height: 56,
-                                width: 56,
+                                height: 50.sp,
+                                width: 50.sp,
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(.20),
                                   borderRadius: BorderRadius.circular(18),
                                 ),
-                                child: const Icon(
+                                child:  Icon(
                                   Icons.my_location_rounded,
-                                  size: 30,
+                                  size: 25.sp,
                                   color: Colors.white,
                                 ),
                               ),
 
                               const SizedBox(height: 14),
 
-                              const Text(
+                               Text(
                                 "Auto",
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 14.sp,
                                   fontWeight: FontWeight.w900,
                                   color: Colors.white,
                                 ),
@@ -517,11 +521,11 @@ class _SavedAddressesState extends State<SavedAddresses> {
 
                               const SizedBox(height: 4),
 
-                              const Text(
+                               Text(
                                 "Pick from map location",
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 12.sp,
                                   height: 1.3,
                                   color: Colors.white,
                                 ),
@@ -625,13 +629,13 @@ class _SavedAddressesState extends State<SavedAddresses> {
           bottom: 16,
           child: SafeArea(
             child: SizedBox(
-              height: 54,
+              height: 45.sp,
               child: ElevatedButton.icon(
                 onPressed: _showAddAddressPopup,
                 icon: const Icon(Icons.add_location_alt_rounded),
-                label: const Text(
+                label:  Text(
                   "Add New Address",
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16.sp),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: kButtonColor,
