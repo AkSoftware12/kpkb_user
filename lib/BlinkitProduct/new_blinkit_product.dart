@@ -701,22 +701,22 @@ class _ProductsScreenState extends State<ProductsScreen>
                     ),
                   ),
                 ),
-                Positioned(
-                  top: 6,
-                  right: 6,
-                  child: Container(
-                    height: 24.sp,
-                    width: 24.sp,
-                    padding: EdgeInsets.all(2.sp),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(5.r),
-                    ),
-                    child: product.is_veg == 1
-                        ? Image.asset('assets/veg.png')
-                        : Image.asset('assets/non_veg.png'),
-                  ),
-                ),
+                // Positioned(
+                //   top: 6,
+                //   right: 6,
+                //   child: Container(
+                //     height: 24.sp,
+                //     width: 24.sp,
+                //     padding: EdgeInsets.all(2.sp),
+                //     decoration: BoxDecoration(
+                //       color: Colors.white,
+                //       borderRadius: BorderRadius.circular(5.r),
+                //     ),
+                //     child: product.is_veg == 1
+                //         ? Image.asset('assets/veg.png')
+                //         : Image.asset('assets/non_veg.png'),
+                //   ),
+                // ),
                 Positioned(
                   bottom: 0,
                   left: 0,
@@ -795,7 +795,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                     //       border: Border.all(color: Colors.red.shade200),
                     //     ),
                     //     child: Text(
-                    //       'GST Inc. ${item.gst}%',
+                    //       'GST Inc. ${item.weight}%',
                     //       style: GoogleFonts.cabin(
                     //         fontSize: 9.sp,
                     //         fontWeight: FontWeight.bold,
@@ -843,6 +843,7 @@ class _ProductsScreenState extends State<ProductsScreen>
 
     final item = product.data[product.selectPos];
     final int stock = int.tryParse(item.stock.toString()) ?? 0;
+    final int weight = int.tryParse(item.weight.toString()) ?? 0;
 
     if (stock <= 0) {
       return Container(
@@ -866,7 +867,87 @@ class _ProductsScreenState extends State<ProductsScreen>
       return InkWell(
         borderRadius: BorderRadius.circular(24.r),
         onTap: () {
+          if (weight >= 21000) {
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => Dialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                elevation: 8,
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Icon circle
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child:  Icon(
+                          Icons.store_mall_directory_rounded,
+                          color:kButtonColor,
+                          size: 48,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
 
+                      // Title
+                      const Text(
+                        'Store Pickup Only',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Message
+                      const Text(
+                        'This product cannot be ordered online because its weight exceeds the allowed limit.\n\nYou can only collect this product directly from the Store.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.black54,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // OK button (full width)
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: kButtonColor,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'OK',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+            return;
+          }
           if (product.data.length == 1) {
             _increaseProduct(index);
 
@@ -964,6 +1045,7 @@ class _ProductsScreenState extends State<ProductsScreen>
       item.varient_id,
       product.data[0].vendor_id,
       product.data[0].gst,
+      product.data[0].weight,
       product.data[0].size,
       product.data[0].color,
     );
@@ -972,6 +1054,7 @@ class _ProductsScreenState extends State<ProductsScreen>
   void _decreaseProduct(int index) {
     final product = productVarientList[index];
     final item = product.data[product.selectPos];
+
 
     setState(() {
       if (product.add_qnty > 0) {
@@ -992,6 +1075,7 @@ class _ProductsScreenState extends State<ProductsScreen>
       item.varient_id,
       product.data[0].vendor_id,
       product.data[0].gst,
+      product.data[0].weight,
       product.data[0].size,
       product.data[0].color,
     );
@@ -1518,7 +1602,7 @@ class _ProductsScreenState extends State<ProductsScreen>
 
 
   void addOrMinusProduct(is_id, is_pres, isBasket, product_name, unit, price,
-      quantity, itemCount, varient_image, varient_id, vendor,gst,selectedSize,selectedColor) async {
+      quantity, itemCount, varient_image, varient_id, vendor,gst,weight,selectedSize,selectedColor,) async {
     DatabaseHelper db = DatabaseHelper.instance;
     Future<int?> existing = db.getcount(int.parse('${varient_id}'));
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -1543,10 +1627,9 @@ class _ProductsScreenState extends State<ProductsScreen>
         // ✅ null nahi jayega
         DatabaseHelper.productImage: safeImage,
         DatabaseHelper.gst: gst,
-
+        DatabaseHelper.weight: weight,
         DatabaseHelper.size: selectedSize,   // null bhi ho sakta hai
         DatabaseHelper.color: selectedColor, // null bhi ho sakta hai
-
         DatabaseHelper.is_pres: is_pres,
         DatabaseHelper.is_id: is_id,
         DatabaseHelper.isBasket: isBasket,

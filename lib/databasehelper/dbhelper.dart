@@ -6,7 +6,7 @@ import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
   static final _databaseName = "jhatfattable.db";
-  static final _databaseVersion = 3;
+  static final _databaseVersion = 4;
 
   static final table = 'producttable';
   static final pharmatable = 'pharmaproduct';
@@ -26,6 +26,7 @@ class DatabaseHelper {
   static final varientId = 'varient_id';
   static final productImage = 'product_img';
   static final gst = 'gst';
+  static final weight = 'weight';
   static final size = 'size';
   static final color = 'color';
   static final is_id = 'is_id';
@@ -84,24 +85,51 @@ class DatabaseHelper {
   // }
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    try {
 
-    if (oldVersion < 2) {
-      await db.execute(
-          "ALTER TABLE $table ADD COLUMN $gst TEXT"
-      );
-    }
+      // Version 2
+      if (oldVersion < 2) {
+        await db.execute(
+          "ALTER TABLE $table ADD COLUMN $gst TEXT DEFAULT ''",
+        );
+      }
 
-    if (oldVersion < 3) {
-      await db.execute(
-          "ALTER TABLE $table ADD COLUMN $size TEXT"
-      );
+      // Version 3
+      if (oldVersion < 3) {
 
-      await db.execute(
-          "ALTER TABLE $table ADD COLUMN $color TEXT"
-      );
+        await db.execute(
+          "ALTER TABLE $table ADD COLUMN $size TEXT",
+        );
+
+        await db.execute(
+          "ALTER TABLE $table ADD COLUMN $color TEXT",
+        );
+      }
+
+      // Version 4
+      if (oldVersion < 4) {
+
+        await db.execute(
+          "ALTER TABLE $table ADD COLUMN $weight TEXT DEFAULT ''",
+        );
+
+        try {
+          await db.execute(
+            "ALTER TABLE $table ADD COLUMN $isBasket INTEGER DEFAULT 0",
+          );
+        } catch (_) {}
+
+        try {
+          await db.execute(
+            "ALTER TABLE $table ADD COLUMN $addedBasket INTEGER DEFAULT 0",
+          );
+        } catch (_) {}
+      }
+
+    } catch (e) {
+      print("DATABASE UPGRADE ERROR => $e");
     }
   }
-
   Future _onCreate(Database db, int version) async {
     Batch batch = db.batch();
     // batch.execute(sql)
@@ -118,6 +146,7 @@ class DatabaseHelper {
             $varientId TEXT NOT NULL,
             $productImage TEXT NOT NULL,
             $gst TEXT DEFAULT '',
+            $weight TEXT DEFAULT '',
             $size TEXT,
             $color TEXT,
             $isBasket INTEGER NOT NULL,
@@ -323,6 +352,7 @@ class DatabaseHelper {
     row[gst] = row[gst] ?? '';
     row[size] = row[size];
     row[color] = row[color];
+    row[weight] = row[weight];
 
     Database db = await instance.database;
     return await db.insert(table, row);

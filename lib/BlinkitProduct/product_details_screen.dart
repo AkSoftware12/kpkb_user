@@ -237,8 +237,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           double.tryParse(product?["mrp"]?.toString() ?? "0") ??
           0.0;
 
-  int get _stock =>
-      int.tryParse(variant?["stock"]?.toString() ?? "0") ?? 0;
+  int get _stock => int.tryParse(variant?["stock"]?.toString() ?? "0") ?? 0;
+  int get weight => int.tryParse(variant?["weight"]?.toString() ?? "0") ?? 0;
 
   // ─────────────────────────────────────────────────────────
   // ADD / MINUS — original ProductsScreen ka exact same flow
@@ -299,6 +299,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     final String unit = variant!["unit"]?.toString() ?? "pcs";
     final dynamic vendor = variant!["vendor_id"];
     final dynamic gst = variant!["gst"] ?? product!["gst"];
+    final dynamic weight = variant!["weight"] ?? product!["weight"];
     final dynamic size = variant!["size"] ?? '';
     final dynamic color = variant!["color"] ?? '';
     final String varientImage =
@@ -323,6 +324,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         DatabaseHelper.addQnty: add_qnty,
         DatabaseHelper.productImage: safeImage,
         DatabaseHelper.gst: gst,
+        DatabaseHelper.weight: weight,
         DatabaseHelper.size: size,
         DatabaseHelper.color: color,
         DatabaseHelper.is_pres: isPres,
@@ -964,7 +966,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         title:  Text(
-          "Product Details",
+          "Product Details ",
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.w900,
@@ -1238,6 +1240,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   style: const TextStyle(
                       fontSize: 24, fontWeight: FontWeight.w900),
                 ),
+                // Text(
+                //   weight.toString(),
+                //   style: const TextStyle(
+                //       fontSize: 24, fontWeight: FontWeight.w900),
+                // ),
                 const SizedBox(height: 8),
 
                 // Size & Color chips — variant change hone par update honge
@@ -1610,15 +1617,103 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
     if (add_qnty == 0) {
       return ElevatedButton(
-        // Multiple variants → sheet kholo; single variant → seedha add karo
-        onPressed: allVariants.length > 1
-            ? _showVariantSheet
-            : _increaseProduct,
+        onPressed: () {
+
+          if (weight >= 21000) {
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => Dialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                elevation: 8,
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Icon circle
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child:  Icon(
+                          Icons.store_mall_directory_rounded,
+                          color:kButtonColor,
+                          size: 48,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Title
+                      const Text(
+                        'Store Pickup Only',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Message
+                      const Text(
+                        'This product cannot be ordered online because its weight exceeds the allowed limit.\n\nYou can only collect this product directly from the Store.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.black54,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // OK button (full width)
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: kButtonColor,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'OK',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+            return;
+          }
+          // Multiple variants → sheet kholo
+          if (allVariants.length > 1) {
+            _showVariantSheet();
+          } else {
+            _increaseProduct();
+          }
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: kButtonColor,
           elevation: 0,
           padding: const EdgeInsets.symmetric(
-              horizontal: 40, vertical: 16),
+            horizontal: 40,
+            vertical: 16,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),
@@ -1633,7 +1728,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         ),
       );
     }
-
     // Stepper — original same
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),

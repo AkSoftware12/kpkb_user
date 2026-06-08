@@ -64,7 +64,7 @@ class _oneViewCartState extends State<oneViewCart> {
   //  Each item quantity = 100 gm  (qty 10 => 1000 gm => 1 kg)
   //  Max allowed cart weight = 20 kg
   // ─────────────────────────────────────────────────────
-  static const double weightPerQtyGram = 100.0; // 1 qty = 100 gm
+  // static const double weightPerQtyGram = 100.0; // 1 qty = 100 gm
   static const double maxCartWeightKg = 20.0; // max allowed
 
   String dateTimeSt = '';
@@ -206,7 +206,8 @@ class _oneViewCartState extends State<oneViewCart> {
     double totalGram = 0.0;
     for (final item in cartListI) {
       final int qty = int.tryParse('${item.add_qnty}') ?? 0;
-      totalGram += qty * weightPerQtyGram;
+      final double w = _toDouble(item.weight);
+      totalGram += qty * w;
     }
     return totalGram;
   }
@@ -888,9 +889,9 @@ class _oneViewCartState extends State<oneViewCart> {
           title: Text(
             "confirm_order".tr(),
             style:  TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.w800,
-              fontSize: 16.sp
+                color: Colors.black,
+                fontWeight: FontWeight.w800,
+                fontSize: 16.sp
             ),
           ),
           actions: [
@@ -1071,7 +1072,7 @@ class _oneViewCartState extends State<oneViewCart> {
                     unit: '${item.qnty} ${item.unit}',
                     image: item.product_img,
                     gst:item.gst.toString(),
-                    size:item.size.toString(),
+                    weight: int.tryParse(item.weight?.toString() ?? '0') ?? 0,                    size:item.size.toString(),
                     color:item.color.toString(),
                   );
                 }).toList(),
@@ -1370,6 +1371,7 @@ class _oneViewCartState extends State<oneViewCart> {
     required String title,
     required String image,
     required String gst,
+    required num weight,
     required String size,
     required String color,
     required double price,
@@ -1391,7 +1393,7 @@ class _oneViewCartState extends State<oneViewCart> {
     final double totalPrice = price * qty;
 
     // Item weight (1 qty = 100 gm)
-    final double itemWeightGram = qty * weightPerQtyGram;
+    final num itemWeightGram = qty * weight;
     final String itemWeightText = itemWeightGram >= 1000
         ? "${(itemWeightGram / 1000).toStringAsFixed(2)} kg"
         : "${itemWeightGram.toStringAsFixed(0)} gm";
@@ -1558,7 +1560,14 @@ class _oneViewCartState extends State<oneViewCart> {
                 //
                 //   ],
                 // ),
-
+                // Text(
+                //   itemWeightText,
+                //   style: GoogleFonts.cabin(
+                //     fontSize: 8.sp,
+                //     fontWeight: FontWeight.w900,
+                //     color: Colors.blue.shade700,
+                //   ),
+                // ),
                 const SizedBox(height: 8),
               ],
             ),
@@ -1623,7 +1632,7 @@ class _oneViewCartState extends State<oneViewCart> {
 
               // ✅ WEIGHT CHECK before adding (predict new weight)
               final double predictedKg =
-                  (totalCartWeightGram + weightPerQtyGram) / 1000;
+                  (totalCartWeightGram + _toDouble(item.weight)) / 1000;
               if (predictedKg > maxCartWeightKg) {
                 _showToast(
                     "Cart weight cannot exceed ${maxCartWeightKg.toStringAsFixed(0)} kg");

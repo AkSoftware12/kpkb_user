@@ -359,6 +359,7 @@ class _WishListProductsScreenState extends State<WishListProductsScreen> {
       varient_id,
       vendor,
       gst,
+      weight,
       ) async {
     DatabaseHelper db = DatabaseHelper.instance;
 
@@ -380,6 +381,7 @@ class _WishListProductsScreenState extends State<WishListProductsScreen> {
         DatabaseHelper.addQnty: itemCount,
         DatabaseHelper.productImage: safeImage,
         DatabaseHelper.gst: gst,
+        DatabaseHelper.weight: weight,
         DatabaseHelper.is_pres: is_pres,
         DatabaseHelper.is_id: is_id,
         DatabaseHelper.isBasket: isBasket,
@@ -446,6 +448,7 @@ class _WishListProductsScreenState extends State<WishListProductsScreen> {
         variant.varient_id,
         variant.vendor_id,
         variant.gst,
+        variant.weight,
       );
     } else {
       Fluttertoast.showToast(msg: "No more stock available");
@@ -478,6 +481,7 @@ class _WishListProductsScreenState extends State<WishListProductsScreen> {
       variant.varient_id,
       variant.vendor_id,
       variant.gst,
+      variant.weight,
     );
   }
 
@@ -498,6 +502,8 @@ class _WishListProductsScreenState extends State<WishListProductsScreen> {
     final double price = toDouble(variant.price);
     final double strikePrice = toDouble(variant.strick_price);
     final int stock = toInt(variant.stock);
+    final int weight = int.tryParse(variant.weight?.toString() ?? "0") ?? 0;
+
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
@@ -791,11 +797,90 @@ class _WishListProductsScreenState extends State<WishListProductsScreen> {
                           ? product.add_qnty == 0
                           ? InkWell(
                         onTap: () {
-                          if (restrocart == 1) {
-                            showMyDialog(context);
-                          } else {
-                            addProduct(index);
+                          if (weight >= 21000) {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (context) => Dialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                elevation: 8,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(24),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      // Icon circle
+                                      Container(
+                                        padding: const EdgeInsets.all(16),
+                                        decoration: BoxDecoration(
+                                          color: Colors.blue.withOpacity(0.1),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child:  Icon(
+                                          Icons.store_mall_directory_rounded,
+                                          color:kButtonColor,
+                                          size: 48,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 20),
+
+                                      // Title
+                                      const Text(
+                                        'Store Pickup Only',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+
+                                      // Message
+                                      const Text(
+                                        'This product cannot be ordered online because its weight exceeds the allowed limit.\n\nYou can only collect this product directly from the Store.',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.black54,
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 24),
+
+                                      // OK button (full width)
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: ElevatedButton(
+                                          onPressed: () => Navigator.pop(context),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: kButtonColor,
+                                            padding: const EdgeInsets.symmetric(vertical: 14),
+                                            elevation: 0,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            'OK',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                            return;
                           }
+
+                          addProduct(index);
+
                         },
                         child: Container(
                           height: 30.sp,
