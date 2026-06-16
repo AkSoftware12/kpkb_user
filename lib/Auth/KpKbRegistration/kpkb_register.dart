@@ -433,8 +433,8 @@ class _KpkbRegisterScreenState extends State<KpkbRegisterScreen> {
                 _otpSection(),
 
                 buildField2(
-                  title: "Regimental. No.",
-                  hint: "Enter regimental number",
+                  title: "Regimental/PPO No.",
+                  hint: "Enter Regimental/PPO Number",
                   icon: Icons.assignment_outlined,
                   controller: regCtrl,
                   keyboardType: TextInputType.number,
@@ -444,7 +444,7 @@ class _KpkbRegisterScreenState extends State<KpkbRegisterScreen> {
                   ],
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return "Regimental number required";
+                      return "Regimental/PPO number required";
                     }
                     if (value.trim().length != 9) {
                       return "Regimental number must be 9 digits";
