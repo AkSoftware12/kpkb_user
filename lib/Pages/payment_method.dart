@@ -329,7 +329,7 @@ class PaymentPageState extends State<PaymentPage> {
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
-    placedOrder("success", "RazorPay");
+    placedOrder("success", "Online");
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
@@ -604,13 +604,13 @@ class PaymentPageState extends State<PaymentPage> {
           return;
         }
 
-        // openCheckout(
-        //   payment.payment_key.toString(),
-        //   payableAmount * 100,
-        // );
+        openCheckout(
+          payment.payment_key.toString(),
+          payableAmount * 100,
+        );
 
         // placedOrder("success", "RazorPay");
-        placedOrder("success", "Online");
+        // placedOrder("success", "Online");
       },
       child: Container(
         padding: const EdgeInsets.all(16),
