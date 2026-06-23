@@ -230,6 +230,7 @@ import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -239,8 +240,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
+import 'package:ntt_atom_flutter/ntt_atom_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:upgrader/upgrader.dart';
 
@@ -277,13 +278,14 @@ class MyHttpOverrides extends HttpOverrides {
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     if (Firebase.apps.isEmpty) {
+      await dotenv.load(fileName: '.env');
       await Firebase.initializeApp(
-        options: const FirebaseOptions(
-          apiKey: 'AIzaSyBKqYfO8j93m080n2I7kianw8WIV0i3sh8',
-          appId: '1:397432293778:android:1e4f36a6d719e1773d194b',
-          messagingSenderId: '397432293778',
-          projectId: 'kpkb-dfc71',
-          storageBucket: 'kpkb-dfc71.firebasestorage.app',
+        options: FirebaseOptions(
+          apiKey: dotenv.env['FIREBASE_API_KEY']!,
+          appId: dotenv.env['FIREBASE_APP_ID']!,
+          messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID']!,
+          projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
+          storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
         ),
       );
     }
@@ -319,16 +321,18 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
+  await dotenv.load(fileName: '.env');
+
   await EasyLocalization.ensureInitialized();
 
   await Firebase.initializeApp(
     options: Platform.isAndroid || kIsWeb
-        ? const FirebaseOptions(
-      apiKey: 'AIzaSyBKqYfO8j93m080n2I7kianw8WIV0i3sh8',
-      appId: '1:397432293778:android:1e4f36a6d719e1773d194b',
-      messagingSenderId: '397432293778',
-      projectId: 'kpkb-dfc71',
-      storageBucket: "kpkb-dfc71.firebasestorage.app",
+        ? FirebaseOptions(
+      apiKey: dotenv.env['FIREBASE_API_KEY']!,
+      appId: dotenv.env['FIREBASE_APP_ID']!,
+      messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID']!,
+      projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
+      storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
     )
         : null,
   );
@@ -356,8 +360,6 @@ Future<void> main() async {
 
   await _requestPermission();
 
-  final razorpay = Razorpay();
-
   runApp(
     EasyLocalization(
       supportedLocales: const [
@@ -375,6 +377,7 @@ Future<void> main() async {
           builder: (context, child) {
             return MaterialApp(
               navigatorKey: navigatorKey,
+              navigatorObservers: [AtomSDK.navigatorObserver],
               debugShowCheckedModeBanner: false,
               locale: context.locale,
               supportedLocales: context.supportedLocales,

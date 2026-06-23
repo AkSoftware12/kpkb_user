@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 double fixPadding = 10.0;
 
@@ -7,4 +8,4 @@ SizedBox widthSpace = SizedBox(width: 10.0);
 dynamic headingSize = 16.0;
 dynamic titleSize = 14.0;
 
-const apiKey = 'AIzaSyCRQIhsGS3xrGeopcSPW70zal2yNRIQAJc';
+var apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';

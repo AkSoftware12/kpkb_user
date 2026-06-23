@@ -2,13 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:ntt_atom_flutter/ntt_atom_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../OrderFailed/order_failed.dart';
 import '../Themes/colors.dart';
 import '../baseurlp/baseurl.dart';
 import '../bean/cartdetails.dart';
@@ -41,35 +42,30 @@ class PaymentPage extends StatefulWidget {
 }
 
 class PaymentPageState extends State<PaymentPage> {
-  Razorpay? _razorpay;
+  static String get _nttaLogin => dotenv.env['NTTA_LOGIN'] ?? '';
+  static String get _nttaPassword => dotenv.env['NTTA_PASSWORD'] ?? '';
+  static String get _nttaProdId => dotenv.env['NTTA_PROD_ID'] ?? '';
+  static String get _nttaClientCode => dotenv.env['NTTA_CLIENT_CODE'] ?? '';
+  static String get _nttaMerchType => dotenv.env['NTTA_MERCH_TYPE'] ?? '';
+  static String get _nttaMccCode => dotenv.env['NTTA_MCC_CODE'] ?? '';
+  static String get _nttaRequestHashKey => dotenv.env['NTTA_REQUEST_HASH_KEY'] ?? '';
+  static String get _nttaResponseHashKey => dotenv.env['NTTA_RESPONSE_HASH_KEY'] ?? '';
+  static String get _nttaRequestEncryptionKey => dotenv.env['NTTA_REQUEST_ENCRYPTION_KEY'] ?? '';
+  static String get _nttaResponseDecryptionKey => dotenv.env['NTTA_RESPONSE_DECRYPTION_KEY'] ?? '';
 
   dynamic currency = '₹';
-  String message = '';
 
   bool showDialogBox = false;
-  bool showPaymentDialog = false;
-  bool _inProgress = false;
 
   bool wallet = false;
   bool iswallet = false;
-  bool isCoupon = false;
 
   double orderAmount = 0.0;
   double payableAmount = 0.0;
   double walletAmount = 0.0;
   double walletUsedAmount = 0.0;
-  double coupAmount = 0.0;
 
   List<CouponList> couponL = [];
-
-  final _formKey = GlobalKey<FormState>();
-  final _verticalSizeBox = const SizedBox(height: 20.0);
-  final _horizontalSizeBox = const SizedBox(width: 10.0);
-
-  String _cardNumber = "";
-  String _cvv = "";
-  int _expiryMonth = 0;
-  int _expiryYear = 0;
 
   @override
   void initState() {
@@ -80,35 +76,23 @@ class PaymentPageState extends State<PaymentPage> {
   }
 
   Future<void> _init() async {
-    getData().then((_) {
-      if (mounted) setState(() {});
-    });
+    await getData();
+    if (mounted) setState(() {});
 
-    Future.wait([
+    await Future.wait([
       getCouponList(),
       getWalletAmount(),
-    ]).then((_) {
-      if (mounted) {
-        _recalculatePayable();
-        setState(() {});
-      }
-    }).catchError((e) {
-      debugPrint("Init Error: $e");
-    });
-  }
+    ]);
 
-  @override
-  void dispose() {
-    _razorpay?.clear();
-    super.dispose();
+    if (mounted) {
+      _recalculatePayable();
+      setState(() {});
+    }
   }
-
-  String amountText(double value) => value.toStringAsFixed(2);
 
   Future<void> getData() async {
     try {
       final pref = await SharedPreferences.getInstance();
-      message = pref.getString("message") ?? '';
       currency = pref.getString('curency') ?? '₹';
     } catch (e) {
       debugPrint("Pref Error: $e");
@@ -130,14 +114,11 @@ class PaymentPageState extends State<PaymentPage> {
 
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
-
         if (jsonData['status'] == "1") {
           final dataList = jsonData['data'] as List;
-
           if (dataList.isNotEmpty) {
             walletAmount =
                 double.tryParse('${dataList[0]['wallet_credits']}') ?? 0.0;
-
             iswallet = walletAmount > 0.0;
             _recalculatePayable();
           }
@@ -166,7 +147,6 @@ class PaymentPageState extends State<PaymentPage> {
 
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
-
         if (jsonData['status'] == "1") {
           final list = jsonData['data'] as List;
           couponL = list.map((e) => CouponList.fromJson(e)).toList();
@@ -189,24 +169,11 @@ class PaymentPageState extends State<PaymentPage> {
     payableAmount = amount < 0 ? 0 : amount;
   }
 
-  PaymentVia? get _razorPayPayment {
-    if (widget.tagObjs.isEmpty) return null;
-
-    try {
-      return widget.tagObjs.firstWhere(
-            (e) => e.payment_mode.toString().toLowerCase().contains('razor'),
-      );
-    } catch (_) {
-      return widget.tagObjs.first;
-    }
-  }
+  bool get _isOnlinePaymentEnabled => widget.tagObjs.isNotEmpty;
 
   Future<void> placedOrder(String paymentStatus, String paymentMethod) async {
     if (showDialogBox) return;
-
-    if (mounted) {
-      setState(() => showDialogBox = true);
-    }
+    if (mounted) setState(() => showDialogBox = true);
 
     try {
       final response = await http
@@ -235,7 +202,6 @@ class PaymentPageState extends State<PaymentPage> {
           await prefs.remove('vendor_id');
 
           if (!mounted) return;
-
           setState(() => showDialogBox = false);
 
           Navigator.of(context).pushReplacement(
@@ -267,84 +233,214 @@ class PaymentPageState extends State<PaymentPage> {
 
   void _showSnack(String msg) {
     if (!mounted) return;
-
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
     );
   }
 
-  void openCheckout(String keyRazorPay, double amount) async {
-    if (keyRazorPay.trim().isEmpty) {
-      _showSnack("Online payment not available");
-      return;
-    }
-
+  Future<void> openNttaCheckout() async {
     if (payableAmount <= 0) {
       _showSnack("Amount should be greater than 0");
       return;
     }
 
-    if (mounted) {
-      setState(() => showDialogBox = true);
-    }
-
-    _razorpay?.clear();
-    _razorpay = Razorpay();
-
-    _razorpay!.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
-    _razorpay!.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
-    _razorpay!.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
-
     final prefs = await SharedPreferences.getInstance();
-
-    final options = {
-      'key': keyRazorPay,
-      'amount': amount.toInt(),
-      'name': prefs.getString('user_name') ?? 'Customer',
-      'description': 'Grocery Shopping',
-      'prefill': {
-        'contact': prefs.getString('user_phone') ?? '',
-        'email': prefs.getString('user_email') ?? '',
-      },
-      'external': {
-        'wallets': ['paytm']
-      }
-    };
+    final txnId = '${widget.cart_id}${DateTime.now().millisecondsSinceEpoch}';
 
     try {
-      if (mounted) {
-        setState(() => showDialogBox = false);
-      }
-      _razorpay!.open(options);
+      final instance = AtomSDK();
+      instance.checkOut(
+        sdkOptions: AtomPaymentOptions(
+          // --- Auth ---
+          login: _nttaLogin,
+          password: _nttaPassword,
+          // --- Merchant ---
+          prodid: _nttaProdId,
+          clientcode: _nttaClientCode,
+          merchType: _nttaMerchType,
+          mccCode: _nttaMccCode,
+          // --- Encryption keys ---
+          requestHashKey: _nttaRequestHashKey,
+          responseHashKey: _nttaResponseHashKey,
+          requestEncryptionKey: _nttaRequestEncryptionKey,
+          responseDecryptionKey: _nttaResponseDecryptionKey,
+          // --- Transaction ---
+          txncurr: 'INR',
+          amount: payableAmount.toStringAsFixed(2),
+          txnid: txnId,
+          mode: AtomPaymentMode.live,
+          // --- Customer ---
+          custFirstName: prefs.getString('user_name') ?? 'Customer',
+          custLastName: '',
+          email:'kpkbddn@gmail.com',
+          mobile: prefs.getString('user_phone') ?? '',
+          address: prefs.getString('user_address') ?? '',
+          custacc: '',
+          // --- User defined fields (optional) ---
+          udf1: widget.cart_id.toString(),
+          udf2: '',
+          udf3: '',
+          udf4: '',
+          udf5: '',
+        ),
+        onClose: (transactionStatus, data) {
+          final isSuccess = transactionStatus.name.toLowerCase() == 'success';
+          final fullResponse = jsonEncode(data); // pura response
+
+          // success ho ya fail, dono case API ko bhejo
+          sendGatewayResponse(
+            gatewayResponse: fullResponse,
+            // isSuccess: isSuccess,
+          );
+        },
+
+        // onClose: (transactionStatus, data) {
+        //   if (transactionStatus.name.toLowerCase() == 'success') {
+        //     final fullResponse = jsonEncode(data);   // pura Map -> JSON string
+        //
+        //     final statusCode =
+        //         '${data['payInstrument']?['responseDetails']?['statusCode']}';
+        //
+        //     if (statusCode == 'OTS0000') {
+        //
+        //       sendGatewayResponse(
+        //         gatewayResponse: fullResponse,
+        //       );
+        //       // placedOrder("success", "Online",
+        //       //     // gatewayResponse: fullResponse
+        //       // );
+        //     } else {
+        //       if (mounted) setState(() => showDialogBox = false);
+        //       _showSnack('Payment not confirmed (code: $statusCode)');
+        //     }
+        //   } else {
+        //     if (mounted) setState(() => showDialogBox = false);
+        //     _showSnack('Payment failed. Please try again.');
+        //   }
+        // },
+
+        // onClose: (transactionStatus, data) {
+        //   // ---- DEBUG: gateway se kya mila ----
+        //   debugPrint('==================== ATOM RESPONSE ====================');
+        //   debugPrint('transactionStatus       : $transactionStatus');
+        //   debugPrint('transactionStatus.name  : ${transactionStatus.name}');
+        //   debugPrint('data runtimeType         : ${data.runtimeType}');
+        //   debugPrint('data (raw)               : $data');
+        //
+        //   try {
+        //     // agar data ek Map/object hai to har key alag se
+        //     if (data is Map) {
+        //       data.forEach((key, value) {
+        //         debugPrint('   $key  =  $value');
+        //       });
+        //     } else {
+        //       // agar JSON string hai to decode karke dekho
+        //       final decoded = jsonDecode(data.toString());
+        //       debugPrint('decoded data : $decoded');
+        //     }
+        //   } catch (e) {
+        //     debugPrint('data parse error: $e');
+        //   }
+        //   debugPrint('=======================================================');
+        //   // ---- DEBUG END ----
+        //
+        //   if (transactionStatus.name.toLowerCase() == 'success') {
+        //     placedOrder("success", "Online");
+        //   } else {
+        //     if (mounted) setState(() => showDialogBox = false);
+        //     _showSnack('Payment failed. Please try again.');
+        //   }
+        // },
+
+
+
+        // onClose: (transactionStatus, data) {
+        //   if (transactionStatus.name.toLowerCase() == 'success') {
+        //     placedOrder("success", "Online");
+        //   } else {
+        //     if (mounted) setState(() => showDialogBox = false);
+        //     _showSnack('Payment failed. Please try again.');
+        //   }
+        // },
+      );
     } catch (e) {
-      if (mounted) {
-        setState(() => showDialogBox = false);
-      }
+      if (mounted) setState(() => showDialogBox = false);
       _showSnack("Payment error");
       debugPrint(e.toString());
     }
   }
 
-  void _handlePaymentSuccess(PaymentSuccessResponse response) {
-    placedOrder("success", "Online");
-  }
+  Future<void> sendGatewayResponse({
+    required String gatewayResponse,
+  }) async {
+    try {
+      final response = await http
+          .post(
+        Uri.parse(atomResponse),
+        body: {
+          'cart_id': widget.cart_id.toString(),
+          'gateway_response': gatewayResponse,
+          // 'txn_status': isSuccess ? 'success' : 'failed',
+        },
+      )
+          .timeout(const Duration(seconds: 12));
 
-  void _handlePaymentError(PaymentFailureResponse response) {
-    if (mounted) {
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body);
+        final int status = jsonData['status'] ?? 0;
+        final String message = jsonData['message']?.toString() ?? '';
+
+        if (status == 1) {
+          placedOrder("success", "Online");
+        } else if (status == 2) {
+          if (mounted) setState(() => showDialogBox = false);
+          _showSnack(message.isNotEmpty ? message : 'Payment failed. Please try again.');
+          _onOrderFailed();
+        } else {
+          if (mounted) setState(() => showDialogBox = false);
+          _showSnack('Unexpected response from server.');
+          _onOrderFailed();
+        }
+
+      } else {
+        if (mounted) setState(() => showDialogBox = false);
+        _showSnack('Server error (${response.statusCode}). Please try again.');
+        _onOrderFailed();
+      }
+
+    } on SocketException {
+      if (!mounted) return;
       setState(() => showDialogBox = false);
+      _showSnack('No internet connection.');
+      _onOrderFailed();
+
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => showDialogBox = false);
+      _showSnack('Something went wrong. Please try again.');
+      debugPrint('verify error: $e');
+      _onOrderFailed();
     }
-    _showSnack('Payment failed. Please try again.');
   }
 
-  void _handleExternalWallet(ExternalWalletResponse response) {}
+  void _onOrderFailed() {
+    if (!mounted) return;
+    setState(() => showDialogBox = false);
+    // jaisa aapko chahiye - snackbar, dialog, ya failed screen
+    // _showSnack('Order could not be placed. Payment will be refunded if deducted.');
+
+    // agar failed screen chahiye:
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => OrderFailed(widget.cart_id, payableAmount.toString())),
+    );
+  }
+
+  String amountText(double value) => value.toStringAsFixed(2);
 
   @override
   Widget build(BuildContext context) {
-    final canPayByWallet = wallet && payableAmount == 0;
-
     return Scaffold(
       backgroundColor: const Color(0xffF6F7FB),
       appBar: AppBar(
@@ -365,10 +461,7 @@ class PaymentPageState extends State<PaymentPage> {
             const SizedBox(height: 3),
             Text(
               'Amount to Pay $currency ${amountText(payableAmount)}',
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 12,
-              ),
+              style: const TextStyle(color: Colors.black, fontSize: 12),
             ),
           ],
         ),
@@ -381,25 +474,15 @@ class PaymentPageState extends State<PaymentPage> {
               children: [
                 _amountSummaryCard(),
                 const SizedBox(height: 16),
-
                 if (iswallet) _walletCard(),
-
                 if (iswallet) const SizedBox(height: 16),
-
                 if (payableAmount > 0) _cashCard(),
-
                 if (payableAmount > 0) const SizedBox(height: 12),
-
                 if (payableAmount > 0) _onlinePaymentCard(),
-
-                // if (canPayByWallet) _walletPayButton(),
-
                 const SizedBox(height: 24),
-                // _footerMessage(),
               ],
             ),
           ),
-          if (showPaymentDialog) _paymentDialog(),
           if (showDialogBox) _loaderOverlay(),
         ],
       ),
@@ -412,13 +495,13 @@ class PaymentPageState extends State<PaymentPage> {
       decoration: BoxDecoration(
         color: Colors.grey.shade300,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(width: 1,color: Colors.grey)
+        border: Border.all(width: 1, color: Colors.grey),
       ),
       child: Column(
         children: [
           Row(
             children: [
-               CircleAvatar(
+              CircleAvatar(
                 backgroundColor: Colors.white,
                 child: Icon(Icons.payments_rounded, color: black_color),
               ),
@@ -437,8 +520,6 @@ class PaymentPageState extends State<PaymentPage> {
           ),
           const SizedBox(height: 18),
           _summaryRow('Order Amount', '$currency ${amountText(orderAmount)}'),
-
-
           const Divider(color: Colors.black, height: 24),
           _summaryRow(
             'Payable Amount',
@@ -500,18 +581,12 @@ class PaymentPageState extends State<PaymentPage> {
               children: [
                 const Text(
                   'Use Wallet',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 15,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Wallet Balance: $currency ${amountText(walletAmount)}',
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                 ),
               ],
             ),
@@ -535,7 +610,6 @@ class PaymentPageState extends State<PaymentPage> {
     return InkWell(
       borderRadius: BorderRadius.circular(22),
       onTap: showDialogBox ? null : () => placedOrder("success", "COD"),
-      // onTap: showDialogBox ? null : () => placedOrder("success", "RazorPay"),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: _cardDecoration(),
@@ -551,7 +625,6 @@ class PaymentPageState extends State<PaymentPage> {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Image.asset(
-                  // 'images/payment/amount.png',
                   'assets/pay_on.png',
                   width: 20,
                   height: 20,
@@ -566,15 +639,11 @@ class PaymentPageState extends State<PaymentPage> {
                 children: [
                   const Text(
                     'Pay on Delivery',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
                   ),
                   const SizedBox(height: 5),
-
                   Text(
-                    'Accepted Your Credit / Debit Card or QR for Payment At Delivery ',
+                    'Accepted Your Credit / Debit Card or QR for Payment At Delivery',
                     style: TextStyle(
                       color: Colors.grey.shade600,
                       fontSize: 12,
@@ -584,7 +653,7 @@ class PaymentPageState extends State<PaymentPage> {
                 ],
               ),
             ),
-             Icon(Icons.arrow_forward_ios_rounded, size: 16,color: kButtonColor,),
+            Icon(Icons.arrow_forward_ios_rounded, size: 16, color: kButtonColor),
           ],
         ),
       ),
@@ -592,26 +661,17 @@ class PaymentPageState extends State<PaymentPage> {
   }
 
   Widget _onlinePaymentCard() {
-    final payment = _razorPayPayment;
-
     return InkWell(
       borderRadius: BorderRadius.circular(22),
       onTap: showDialogBox
           ? null
           : () {
-        if (payment == null) {
-          _showSnack("Online payment not available");
-          return;
-        }
-
-        openCheckout(
-          payment.payment_key.toString(),
-          payableAmount * 100,
-        );
-
-        // placedOrder("success", "RazorPay");
-        // placedOrder("success", "Online");
-      },
+              if (!_isOnlinePaymentEnabled) {
+                _showSnack("Online payment not available");
+                return;
+              }
+              openNttaCheckout();
+            },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: _cardDecoration(),
@@ -637,10 +697,7 @@ class PaymentPageState extends State<PaymentPage> {
                 children: [
                   const Text(
                     'Online Payment',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
                   ),
                   const SizedBox(height: 5),
                   Text(
@@ -656,116 +713,6 @@ class PaymentPageState extends State<PaymentPage> {
             ),
             const Icon(Icons.arrow_forward_ios_rounded, size: 16),
           ],
-        ),
-      ),
-    );
-  }
-
-
-
-  Widget _paymentDialog() {
-    return Positioned.fill(
-      child: Container(
-        color: Colors.black.withOpacity(.55),
-        alignment: Alignment.center,
-        padding: const EdgeInsets.all(20),
-        child: Material(
-          borderRadius: BorderRadius.circular(18),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                child: ListBody(
-                  children: [
-                    const Text(
-                      'Card Payment',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 18,
-                      ),
-                    ),
-                    _verticalSizeBox,
-                    TextFormField(
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        border: UnderlineInputBorder(),
-                        labelText: 'Card number',
-                      ),
-                      onChanged: (value) => _cardNumber = value,
-                    ),
-                    _verticalSizeBox,
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              border: UnderlineInputBorder(),
-                              labelText: 'CVV',
-                            ),
-                            onChanged: (value) => _cvv = value,
-                          ),
-                        ),
-                        _horizontalSizeBox,
-                        Expanded(
-                          child: TextFormField(
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              border: UnderlineInputBorder(),
-                              labelText: 'Month',
-                            ),
-                            onChanged: (value) {
-                              _expiryMonth = int.tryParse(value) ?? 0;
-                            },
-                          ),
-                        ),
-                        _horizontalSizeBox,
-                        Expanded(
-                          child: TextFormField(
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              border: UnderlineInputBorder(),
-                              labelText: 'Year',
-                            ),
-                            onChanged: (value) {
-                              _expiryYear = int.tryParse(value) ?? 0;
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    _verticalSizeBox,
-                    _inProgress
-                        ? SizedBox(
-                      height: 50,
-                      child: Center(
-                        child: Platform.isIOS
-                            ? const CupertinoActivityIndicator()
-                            : const CircularProgressIndicator(),
-                      ),
-                    )
-                        : ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: kMainColor,
-                      ),
-                      onPressed: () {
-                        setState(() => _inProgress = true);
-                      },
-                      child: const Text(
-                        'Proceed to payment',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
         ),
       ),
     );

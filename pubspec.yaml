@@ -3,7 +3,7 @@ description: "A new Flutter project."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 
-version: 1.0.12+12
+version: 1.0.13+13
 
 
 
@@ -36,7 +36,8 @@ dependencies:
   google_fonts: ^4.0.5
   flutter_launcher_icons: ^0.14.4
   circular_bottom_navigation: ^2.4.0
-  razorpay_flutter: ^1.4.0
+  ntt_atom_flutter: ^1.0.5
+  flutter_inappwebview: ^6.1.5
   connectivity_plus: ^6.1.4
   http: ^1.0.0
   page_transition: ^2.2.1
@@ -85,6 +86,7 @@ dependencies:
   in_app_update: ^4.2.3
   easy_localization: ^3.0.8
   new_version_plus: ^0.1.1
+  flutter_dotenv: ^6.0.1
 
 # driver app
 
@@ -106,6 +108,10 @@ dependencies:
 
 
 
+
+dependency_overrides:
+  ntt_atom_flutter:
+    path: packages/ntt_atom_flutter
 
 dev_dependencies:
   flutter_test:
@@ -145,6 +151,7 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
+    - .env
     - assets/translations/
     - images/
     - images/account/

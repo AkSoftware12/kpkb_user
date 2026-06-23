@@ -82,7 +82,7 @@ class _AccountPageState extends State<AccountPage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     getCurrency();
-    _checkFirstLaunch();
+    // _checkFirstLaunch();
     // _getLocation();
     getSharedPref();
     hitStatusServiced();
@@ -153,18 +153,18 @@ class _AccountPageState extends State<AccountPage>
     }
   }
 
-  Future<void> _checkFirstLaunch() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool isFirstLaunch = prefs.getBool('firstLaunch') ?? true;
-
-    if (isFirstLaunch) {
-      await Future.delayed(Duration(seconds: 2));
-      showDisclosureDialog(context);
-      prefs.setBool('firstLaunch', false);
-    } else {
-      // Navigate to your home screen or any other screen as needed.
-    }
-  }
+  // Future<void> _checkFirstLaunch() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   bool isFirstLaunch = prefs.getBool('firstLaunch') ?? true;
+  //
+  //   if (isFirstLaunch) {
+  //     await Future.delayed(Duration(seconds: 2));
+  //     showDisclosureDialog(context);
+  //     prefs.setBool('firstLaunch', false);
+  //   } else {
+  //     // Navigate to your home screen or any other screen as needed.
+  //   }
+  // }
 
   void showDisclosureDialog(BuildContext context) {
     showDialog(

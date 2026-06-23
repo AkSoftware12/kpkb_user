@@ -440,14 +440,14 @@ class _KpkbRegisterScreenState extends State<KpkbRegisterScreen> {
                   keyboardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(9),
+                    LengthLimitingTextInputFormatter(20),
                   ],
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return "Regimental/PPO number required";
                     }
-                    if (value.trim().length != 9) {
-                      return "Regimental number must be 9 digits";
+                    if (value.trim().length != 20) {
+                      return "Regimental number must be 20 digits";
                     }
                     return null;
                   },

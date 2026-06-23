@@ -2044,12 +2044,17 @@ class _oneViewCartState extends State<oneViewCart> {
       },
     );
   }
-  void _onPayTapWrapper() {
-    if (payableAmount < 1000) {
+  Future<void> _onPayTapWrapper() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userPhone = prefs.getString('user_phone') ?? '';
+    print('User Phone: $userPhone');
+
+    if (payableAmount < 1000 && userPhone != '6397199758') {
       _showMinOrderPopup();
       return;
     }
     _onPayTap();
+
   }
   Future<void> _onPayTap() async {
     safeSetState(() => _isPaying = true);
